@@ -1,6 +1,14 @@
 # ExFactor
 
-**TODO: Add description**
+ExFactor is a refactoring helper. Given a module, function name, and arity, it will locate all uses of
+that function, change the callers to a new module and/or function name, and move the function from the original location
+to a new file/module. At this time, ExFactor cannot change the function arity.
+
+
+### Example
+```elixir
+mix exfactor -m MyApp.MyMod -f [my_func: 2] -mm MyApp.MyNewMod -mf :my_new_func
+```
 
 ## Installation
 
