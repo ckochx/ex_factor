@@ -3,11 +3,12 @@ defmodule ExFactor.Evaluater do
   Documentation for `ExFactor.Evaluater`.
   """
 
+  alias ExFactor.Callers
   alias ExFactor.Parser
 
   def modules_to_refactor(module, func, arity) do
     module
-    |> ExFactor.callers()
+    |> Callers.callers()
     |> Enum.map(fn %{filepath: filepath} ->
       filepath
       |> Parser.public_functions()

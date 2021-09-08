@@ -12,7 +12,8 @@ defmodule ExFactor.ExtractorTest do
     content = """
     defmodule ExFactorSampleModule do
       @somedoc "This is somedoc"
-      # no aliases
+      # a comment and no aliases
+      _docp = "here's an arbitrary module underscore"
       def pub1(arg1) do
         :ok
       end
@@ -20,8 +21,6 @@ defmodule ExFactor.ExtractorTest do
     """
 
     File.write("test/support/source_module.ex", content)
-
-    # target_path = Macro.underscore(target_module)
     target_path = "test/support/target_module.ex"
     File.rm(target_path)
 
@@ -46,7 +45,6 @@ defmodule ExFactor.ExtractorTest do
     content = """
     defmodule ExFactor.SourceModule do
       @somedoc "This is somedoc"
-      # no aliases
       def pub1(arg1) do
         :ok
       end

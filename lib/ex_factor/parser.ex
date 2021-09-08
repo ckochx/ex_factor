@@ -26,7 +26,7 @@ defmodule ExFactor.Parser do
     filepath
     |> File.read!()
     |> Code.string_to_quoted()
-    |> IO.inspect(label: "all funxs")
+    # |> IO.inspect(label: "all funxs")
     |> public_functions()
   end
 

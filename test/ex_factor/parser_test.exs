@@ -73,34 +73,37 @@ defmodule ExFactor.ParserTest do
       assert f1.name == :pub2
     end
 
-    # test "ast references private fns and external fns called by a public fn" do
-    #   content = """
-    #   defmodule ExFactorOtherModule do
-    #     def other_pub1(arg1), do: arg1
-    #   end
-    #   """
-    #   File.write("test/support/other_module.ex", content)
+    test "ast references private fns and external fns called by a public fn" do
+      content = """
+      defmodule ExFactorOtherModule do
+        def other_pub1(arg1), do: arg1
+      end
+      """
+      File.write("test/support/other_module.ex", content)
 
-    #   {ast, fns} = """
-    #   defmodule ExFactorSampleModule do
-    #     def pub1(arg1) do
-    #       arg1
-    #       |> ExFactorOtherModule.other_pub1()
-    #       |> priv2()
-    #     end
+      {ast, fns} = """
+      defmodule ExFactorSampleModule do
+        def pub1(arg1) do
+          inter = ExFactorOtherModule.other_pub1(arg1)
+          priv2(inter)
+        end
 
-    #     defp priv2(arg2) do
-    #       :private
-    #     end
-    #   end
-    #   """
-    #   |> Code.string_to_quoted()
-    #   |> Parser.public_functions()
-    #   |> IO.inspect(label: "")
-    #   # assert f2.name == :pub1
-    #   # assert f1.name == :pub2
-    #   File.rm("test/support/other_module.ex")
-    # end
+        defp priv2(arg2) do
+          Map.get(args2, :key)
+        end
+      end
+      """
+      |> Code.string_to_quoted()
+      |> Parser.public_functions()
+      |> IO.inspect(label: "")
+
+      m = List.first(fns)
+      Macro.decompose_call(m.ast)
+      |> IO.inspect(label: "decompose_call")
+      # assert f2.name == :pub1
+      # assert f1.name == :pub2
+      File.rm("test/support/other_module.ex")
+    end
   end
 
   describe "private_functions/1" do
