@@ -5,20 +5,24 @@ defmodule ExFactor.Extractor do
   alias ExFactor.Parser
 
   def emplace(files, opts) do
-    source_path = Keyword.get(opts, :source_path)
     source_module = Keyword.get(opts, :source_module)
     target_module = Keyword.get(opts, :target_module)
-    target_path = Keyword.get(opts, :target_path)
     source_function = Keyword.get(opts, :source_function)
     arity = Keyword.get(opts, :arity)
     target_function = Keyword.get(opts, :target_function, source_function)
 
-    Macro.underscore(source_module)
+    target_path = Keyword.get(opts, :target_path, path(target_module))
+    |> IO.inspect(label: "target_path")
+    source_path = Keyword.get(opts, :source_path, path(source_module))
+    # Macro.underscore(source_module)
+
+    # source_path = Macro.underscore(source_module) <> ".ex"
     # target_path = Macro.underscore(target_module) <> ".ex"
-    Path.join([Mix.Project.app_path(), target_path])
+
+    # Path.join([Mix.Project.app_path(), target_path])
     # |> IO.inspect(label: "")
 
-    File.exists?(source_path) |> IO.inspect(label: "")
+    File.exists?(source_path) |> IO.inspect(label: "exists")
 
     {_ast, functions} = Parser.public_functions(source_path)
 
@@ -47,5 +51,9 @@ defmodule ExFactor.Extractor do
 
         File.write(target_path, content)
     end
+  end
+
+  defp path(module) do
+    Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
 end
