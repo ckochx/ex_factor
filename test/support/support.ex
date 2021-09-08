@@ -3,9 +3,9 @@ defmodule ExFactor.Support do
   Support moduel for `ExFactor` testing.
   """
 
-  alias ExFactor.Parser
+  # use alias as: to verify the caller is found.
+  alias ExFactor.Parser, as: P
 
   def callers(mod), do: ExFactor.callers(mod)
-  def all_functions(input), do: Parser.all_functions(input)
+  def all_functions(input), do: P.all_functions(input)
 end
-

@@ -25,3 +25,5 @@ ex_factor-*.tar
 
 # Temporary files for e.g. tests
 /tmp
+
+test/support/*_module.ex
