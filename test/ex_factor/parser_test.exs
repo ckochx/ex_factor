@@ -73,35 +73,60 @@ defmodule ExFactor.ParserTest do
       assert f1.name == :pub2
     end
 
+    test "it should return all versions of a public fn" do
+      {_ast, [f1, f2]} =
+        """
+        defmodule ExFactorSampleModule do
+          @somedoc "This is somedoc"
+          # no aliases
+          def pub1(arg1) do
+            :ok
+          end
+
+          def pub1(:yes) do
+            :yes
+          end
+
+          defp pub3(arg3) do
+            :private
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+        |> Parser.public_functions()
+
+      assert f2.name == :pub1
+      assert f1.name == :pub1
+    end
+
     test "ast references private fns and external fns called by a public fn" do
       content = """
       defmodule ExFactorOtherModule do
         def other_pub1(arg1), do: arg1
       end
       """
+
       File.write("test/support/other_module.ex", content)
 
-      {ast, fns} = """
-      defmodule ExFactorSampleModule do
-        def pub1(arg1) do
-          inter = ExFactorOtherModule.other_pub1(arg1)
-          priv2(inter)
-        end
+      {_ast, fns} =
+        """
+        defmodule ExFactorSampleModule do
+          def pub1(arg1) do
+            inter = ExFactorOtherModule.other_pub1(arg1)
+            priv2(inter)
+          end
 
-        defp priv2(arg2) do
-          Map.get(args2, :key)
+          defp priv2(arg2) do
+            Map.get(args2, :key)
+          end
         end
-      end
-      """
-      |> Code.string_to_quoted()
-      |> Parser.public_functions()
-      |> IO.inspect(label: "")
+        """
+        |> Code.string_to_quoted()
+        |> Parser.public_functions()
 
       m = List.first(fns)
       Macro.decompose_call(m.ast)
-      |> IO.inspect(label: "decompose_call")
-      # assert f2.name == :pub1
-      # assert f1.name == :pub2
+
       File.rm("test/support/other_module.ex")
     end
   end
@@ -207,6 +232,65 @@ defmodule ExFactor.ParserTest do
       assert f3.name == :priv3
       assert f3.defn == :defp
       assert f3.arity == 3
+    end
+  end
+
+  describe "block_contents/1" do
+    test "it returns the list with all the contents of the top-level block" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # comments get dropped
+        @doc "
+        multiline
+        documentation for pub1
+        "
+        def pub1(arg1) do
+          :ok
+        end
+        _docp = "arbitrary module-level elem"
+        defp priv1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/test_module.ex", content)
+      {_ast, block} = Parser.block_contents("test/tmp/test_module.ex")
+
+      assert [
+               {:@, _, [{:somedoc, _, ["This is somedoc"]}]},
+               {:@, _, [{:doc, _, ["\n  multiline\n  documentation for pub1\n  "]}]},
+               {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]},
+               {:=, _, [{:_docp, _, nil}, "arbitrary module-level elem"]},
+               {:defp, _, [{:priv1, _, [{:arg1, _, nil}]}, [do: :ok]]}
+             ] = block
+    end
+  end
+
+  describe "read_file/1" do
+    test "it reads the file into an AST and list of each line" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # comments get dropped
+        _docp = "arbitrary module-level elem"
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/test_module.ex", content)
+      {ast, list} = Parser.read_file("test/tmp/test_module.ex")
+
+      assert List.first(list) == "defmodule ExFactorSampleModule do"
+      assert Enum.at(list, -2) == "end"
+      assert {:defmodule, [do: [line: 1], end: [line: 8], line: 1], _} = ast
+    end
+
+    test "raises an exception for an invalid file path" do
+      assert_raise File.Error, fn -> Parser.read_file("test/tmp/invalid.ex") end
     end
   end
 end
