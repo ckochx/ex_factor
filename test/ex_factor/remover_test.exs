@@ -6,9 +6,9 @@ defmodule ExFactor.RemoverTest do
   setup_all do
     File.mkdir_p("test/tmp")
 
-    # on_exit(fn ->
-    #   File.rm_rf("test/tmp")
-    # end)
+    on_exit(fn ->
+      File.rm_rf("test/tmp")
+    end)
   end
 
   describe "remove/1" do
@@ -38,29 +38,16 @@ defmodule ExFactor.RemoverTest do
 
         end
         """
-        # |> Code.string_to_quoted()
 
       File.write("test/tmp/source_module.ex", module)
-
-      # {_ast, [f1, f2]} = Parser.public_functions("test/tmp/source_module.ex")
-      # {_ast, [f1, f2]} = Parser.public_functions("test/tmp/source_module.ex")
-
-      # {_ast, block} = Parser.block_contents("test/tmp/source_module.ex")
       Remover.remove("test/tmp/source_module.ex", :pub1, 1)
 
-      # assert [
-      #          {:@, _, [{:somedoc, _, ["This is somedoc"]}]},
-      #          {:@, _, [{:doc, _, ["\n  multiline\n  documentation for pub1\n  "]}]},
-      #          {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
-      #        ] = Remover.walk(block, :pub1)
       updated_file = File.read!("test/tmp/source_module.ex")
       refute updated_file =~ "def pub1(arg1) do"
       assert updated_file =~ "Function: pub1/1 removed by ExFactor"
+      assert updated_file =~ "# @spec: pub1/1 removed by ExFactor"
       # it removes specs too
       refute updated_file =~ "@spec pub1(term()) :: term()"
     end
-
-    # test "it removes specs too" do
-    # end
   end
 end

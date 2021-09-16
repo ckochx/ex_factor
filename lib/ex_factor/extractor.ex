@@ -48,17 +48,11 @@ defmodule ExFactor.Extractor do
 
   def remove(opts) do
     source_module = Keyword.get(opts, :source_module)
-    # target_module = Keyword.get(opts, :target_module)
     source_function = Keyword.get(opts, :source_function)
     arity = Keyword.get(opts, :arity)
-    # target_path = Keyword.get(opts, :target_path, path(target_module))
     source_path = Keyword.get(opts, :source_path, path(source_module))
-    {_ast, functions} = Parser.all_functions(source_path)
-    functions |> IO.inspect(label: "")
-    # to_extract = Neighbors.walk(block_contents, source_function, arity)
-    # |> IO.inspect(label: "to_extract")
 
-
+    ExFactor.Remover.remove(source_path, source_function, arity)
   end
 
   defp path(module) do

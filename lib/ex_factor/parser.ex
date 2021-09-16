@@ -21,15 +21,9 @@ defmodule ExFactor.Parser do
   end
 
   def block_contents({:ok, ast}) do
-    # {_ast, block} =
     Macro.postwalk(ast, [], fn node, acc ->
       {node, ast_block(node, acc)}
     end)
-
-    # Macro.postwalk(block, [], fn node, acc ->
-    #   {node, walk_ast(node, acc, :def)}
-    #   # |> IO.inspect(label: "walk AST")
-    # end)
   end
 
   @doc """
@@ -46,6 +40,8 @@ defmodule ExFactor.Parser do
     {_ast, public_functions} = public_functions(input)
     {ast, private_functions} = private_functions(input)
     {ast, public_functions ++ private_functions}
+    all_fns = public_functions ++ private_functions
+    {ast, Enum.uniq(all_fns)}
   end
 
   @doc """
@@ -63,14 +59,6 @@ defmodule ExFactor.Parser do
       {node, walk_ast(node, acc, :def)}
     end)
   end
-
-  # def public_functions({:ok, ast}) do
-  #   ast |> IO.inspect(label: "")
-  #   Macro.postwalk(ast, {:prev, []}, fn node, acc ->
-  #     {node, walk_ast(node, acc, :def)}
-  #     # |> IO.inspect(label: "walk AST")
-  #   end)
-  # end
 
   @doc """
   Identify private functions from a module AST.
@@ -96,34 +84,22 @@ defmodule ExFactor.Parser do
   defp walk_ast({:@, fn_meta, [{:spec, _meta, [{_, _, [{name, _, args} | _]} | _]} | _]} = node, acc, _token) do
     arity = length(args)
     map = merge_maps(%{name: name, ast: node, arity: arity, defn: "@spec"}, fn_meta)
-    # map =
-    #   fn_meta
-    #   |> IO.inspect(label: "spec meta")
-    #   |> find_lines()
-      # |> Map.merge(%{name: :spec, ast: node, arity: arity, defn: "@spec"})
     [map | acc]
   end
 
   defp walk_ast({tkn, fn_meta, [{:when, _when_meta, [{name, _meta, args} | _]} | _]} = node, acc, token) when tkn == token do
     arity = length(args)
     map = merge_maps(%{name: name, ast: node, arity: arity, defn: token}, fn_meta)
-      # fn_meta
-      # |> find_lines()
-      # |> Map.merge()
     [map | acc]
   end
 
   defp walk_ast({tkn, fn_meta, [{name, _meta, args} | _]} = node, acc, token) when tkn == token do
     arity = length(args)
     map = merge_maps(%{name: name, ast: node, arity: arity, defn: token}, fn_meta)
-      # fn_meta
-      # |> find_lines()
-      # |> Map.merge()
     [map | acc]
   end
 
   defp walk_ast(_node, acc, _token) do
-    # node |> IO.inspect(label: "")
     acc
   end
 
@@ -162,12 +138,3 @@ defmodule ExFactor.Parser do
     acc
   end
 end
-
-
-[{:"::", [line: 2], [
-     {:priv1, [closing: [line: 2], line: 2],
-      [{:term, [closing: [line: 2], line: 2], []}]},
-     {:term, [closing: [line: 2], line: 2], []}
-   ]
-  }
-]
