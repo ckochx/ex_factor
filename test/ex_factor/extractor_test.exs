@@ -9,6 +9,7 @@ defmodule ExFactor.ExtractorTest do
         @somedoc "This is somedoc"
         # a comment and no aliases
         _docp = "here's an arbitrary module underscore"
+        @spec pub1(term()) :: term()
         def pub1(arg1) do
           :ok
         end
@@ -34,6 +35,11 @@ defmodule ExFactor.ExtractorTest do
       file = File.read!(target_path)
       assert file =~ "def(pub1(arg1))"
       assert file =~ "defmodule(ExFactor.NewMod) do"
+      # includes additional attrs
+      assert file =~ "@spec(pub1(term()) :: term())"
+      assert file =~ "@somedoc(\"This is somedoc\")"
+      # comments don't get moved
+      refute file =~ "# a comment and no aliases"
       File.rm("test/support/source_module.ex")
       File.rm("test/support/target_module.ex")
     end
@@ -231,13 +237,9 @@ defmodule ExFactor.ExtractorTest do
       """
 
       File.write("test/support/source_module.ex", content)
-
       source_path = "test/support/source_module.ex"
-      # File.rm(target_path)
 
       opts = [
-        # target_path: target_path,
-        # target_module: ExFactor.NewMod,
         source_module: ExFactorSampleModule,
         source_path: "test/support/source_module.ex",
         source_function: :pub1,

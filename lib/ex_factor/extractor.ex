@@ -4,9 +4,11 @@ defmodule ExFactor.Extractor do
   """
   alias ExFactor.Neighbors
   alias ExFactor.Parser
+  alias ExFactor.Remover
 
   @doc """
-  Given a keyword list of opts, find the function in the specified source, refactor it, the docs,
+  Given a keyword list of opts, find the function in the specified source.
+  Add the function (and any accociated attrs: @doc, @spec, ) into the target module. refactor it, the docs,
   specs, and any miscellaneous attrs proximate to the source function into the specified module.
   """
 
@@ -46,13 +48,16 @@ defmodule ExFactor.Extractor do
     end
   end
 
+  @doc """
+  Remove the indicated function and its spec from it's original file.
+  """
   def remove(opts) do
     source_module = Keyword.get(opts, :source_module)
     source_function = Keyword.get(opts, :source_function)
     arity = Keyword.get(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
 
-    ExFactor.Remover.remove(source_path, source_function, arity)
+    Remover.remove(source_path, source_function, arity)
   end
 
   defp path(module) do

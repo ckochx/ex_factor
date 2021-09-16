@@ -10,7 +10,6 @@ defmodule ExFactor.Callers do
   @doc """
   use `mix xref` list all the callers of a given module.
   """
-  # @spec callers(module()) :: list(map())
   def callers(mod) do
     System.cmd("mix", ["xref", "callers", "#{mod}"], env: [{"MIX_ENV", "test"}])
     |> elem(0)

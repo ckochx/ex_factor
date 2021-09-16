@@ -81,13 +81,22 @@ defmodule ExFactor.Parser do
     [map | acc]
   end
 
-  defp walk_ast({:@, fn_meta, [{:spec, _meta, [{_, _, [{name, _, args} | _]} | _]} | _]} = node, acc, _token) do
+  defp walk_ast(
+         {:@, fn_meta, [{:spec, _meta, [{_, _, [{name, _, args} | _]} | _]} | _]} = node,
+         acc,
+         _token
+       ) do
     arity = length(args)
     map = merge_maps(%{name: name, ast: node, arity: arity, defn: "@spec"}, fn_meta)
     [map | acc]
   end
 
-  defp walk_ast({tkn, fn_meta, [{:when, _when_meta, [{name, _meta, args} | _]} | _]} = node, acc, token) when tkn == token do
+  defp walk_ast(
+         {tkn, fn_meta, [{:when, _when_meta, [{name, _meta, args} | _]} | _]} = node,
+         acc,
+         token
+       )
+       when tkn == token do
     arity = length(args)
     map = merge_maps(%{name: name, ast: node, arity: arity, defn: token}, fn_meta)
     [map | acc]
@@ -116,12 +125,15 @@ defmodule ExFactor.Parser do
   end
 
   defp find_end_line(meta) do
-    end_expression_line = meta
-    |> Keyword.get(:end_of_expression, [])
-    |> Keyword.get(:line, :unknown)
-    end_line = meta
-    |> Keyword.get(:end, [])
-    |> Keyword.get(:line, :unknown)
+    end_expression_line =
+      meta
+      |> Keyword.get(:end_of_expression, [])
+      |> Keyword.get(:line, :unknown)
+
+    end_line =
+      meta
+      |> Keyword.get(:end, [])
+      |> Keyword.get(:line, :unknown)
 
     cond do
       end_line != :unknown -> end_line

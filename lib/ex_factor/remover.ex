@@ -7,13 +7,14 @@ defmodule ExFactor.Remover do
 
   def remove(source_path, fn_name, arity) do
     {_ast, block_contents} = Parser.all_functions(source_path)
-    fns_to_remove = Enum.filter(block_contents, & &1.name == fn_name)
+    fns_to_remove = Enum.filter(block_contents, &(&1.name == fn_name))
     {_ast, line_list} = Parser.read_file(source_path)
 
     Enum.reduce(fns_to_remove, line_list, fn function, acc ->
-      delete_range = function.start_line..function.end_line
-      |> Enum.to_list()
-      |> Enum.reverse
+      delete_range =
+        function.start_line..function.end_line
+        |> Enum.to_list()
+        |> Enum.reverse()
 
       delete_range
       |> Enum.reduce(acc, fn idx, acc ->
@@ -30,6 +31,7 @@ defmodule ExFactor.Remover do
     # @spec: #{name}/#{arity} removed by ExFactor
     """
   end
+
   defp comment(name, arity, _) do
     """
     #

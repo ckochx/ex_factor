@@ -48,16 +48,17 @@ defmodule ExFactor.ParserTest do
     end
 
     test "it should report public fns with start and end lines" do
-        content = """
-        defmodule ExFactorSampleModule do
-          @somedoc "This is somedoc"
-          # no aliases
-          def pub1(arg1) do
-            :ok
-          end
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # no aliases
+        def pub1(arg1) do
+          :ok
         end
-        """
-        # |> Code.string_to_quoted()
+      end
+      """
+
+      # |> Code.string_to_quoted()
 
       File.write("test/tmp/other_module.ex", content)
 
@@ -70,15 +71,15 @@ defmodule ExFactor.ParserTest do
 
     test "it should report specs with start and end lines" do
       module = """
-        defmodule ExFactorSampleModule do
-          @somedoc "This is somedoc"
-          # no aliases
-          @spec pub1(term()) :: term()
-          def pub1(arg1) do
-            :ok
-          end
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # no aliases
+        @spec pub1(term()) :: term()
+        def pub1(arg1) do
+          :ok
         end
-        """
+      end
+      """
 
       File.write("test/tmp/other_module.ex", module)
 
@@ -96,26 +97,26 @@ defmodule ExFactor.ParserTest do
     end
 
     test "it should report TWO public fns" do
-      content =
-        """
-        defmodule ExFactorSampleModule do
-          @somedoc "This is somedoc"
-          # no aliases
-          def pub1(arg1) do
-            :ok
-          end
-
-          def pub2(arg2)
-            do
-              #comment
-              :yes
-            end
-
-          defp pub3(arg3) do
-            :private
-          end
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # no aliases
+        def pub1(arg1) do
+          :ok
         end
-        """
+
+        def pub2(arg2)
+          do
+            #comment
+            :yes
+          end
+
+        defp pub3(arg3) do
+          :private
+        end
+      end
+      """
+
       File.write("test/tmp/other_module.ex", content)
 
       {_ast, [f1, f2]} = Parser.public_functions("test/tmp/other_module.ex")
@@ -130,26 +131,26 @@ defmodule ExFactor.ParserTest do
 
     # @tag :skip
     test "it should handle when clauses" do
-      content =
-        """
-        defmodule ExFactorSampleModule do
-          @somedoc "This is somedoc"
-          # no aliases
-          def pub1(arg1) do
-            :ok
-          end
-
-          def pub2(arg2) when is_map(arg2) and not is_nil(arg2)
-            do
-              #comment
-              :yes
-            end
-
-          defp pub3(arg3) do
-            :private
-          end
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # no aliases
+        def pub1(arg1) do
+          :ok
         end
-        """
+
+        def pub2(arg2) when is_map(arg2) and not is_nil(arg2)
+          do
+            #comment
+            :yes
+          end
+
+        defp pub3(arg3) do
+          :private
+        end
+      end
+      """
+
       File.write("test/tmp/other_module.ex", content)
 
       {_ast, [f1, f2]} = Parser.public_functions("test/tmp/other_module.ex")
@@ -263,13 +264,13 @@ defmodule ExFactor.ParserTest do
 
     test "it should report specs with start and end lines" do
       module = """
-        defmodule ExFactorSampleModule do
-          @spec priv1(term()) :: term()
-          defp priv1(arg1) do
-            :ok
-          end
+      defmodule ExFactorSampleModule do
+        @spec priv1(term()) :: term()
+        defp priv1(arg1) do
+          :ok
         end
-        """
+      end
+      """
 
       File.write("test/tmp/other_module.ex", module)
 
@@ -288,13 +289,13 @@ defmodule ExFactor.ParserTest do
 
     test "it should report specs with 0-arity" do
       module = """
-        defmodule ExFactorSampleModule do
-          @spec priv1() :: any()
-          defp priv1() do
-            :ok
-          end
+      defmodule ExFactorSampleModule do
+        @spec priv1() :: any()
+        defp priv1() do
+          :ok
         end
-        """
+      end
+      """
 
       File.write("test/tmp/other_module.ex", module)
 

@@ -21,8 +21,10 @@ defmodule ExFactor.Neighbors do
     cond do
       arity == :unmatched ->
         {[], acc ++ pending ++ [el]}
+
       length(args) == arity ->
         {[], acc ++ pending ++ [el]}
+
       true ->
         {[], acc}
     end
