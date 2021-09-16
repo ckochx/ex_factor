@@ -3,28 +3,40 @@ defmodule ExFactor.Neighbors do
   Documentation for `ExFactor.Neighbors`.
   """
 
-  def prev(block, fn_name) do
+  @doc """
+  Walk the AST and find all the elements before the target function and the previous function.
+  Find all the instances of the target function. Return after evaluating all the block-level
+  AST elements. Ignore certain elements, such as :alias.
+  """
+  def walk(block, fn_name, arity \\ :unmatched) do
     block
     |> Enum.reduce({[], []}, fn el, acc ->
-      eval_elem(el, acc, fn_name)
+      eval_elem(el, acc, fn_name, arity)
     end)
     |> elem(1)
   end
 
-  defp eval_elem({type, _, [{name, _, _} | _]} = el, {pending, acc}, name)
+  defp eval_elem({type, _, [{name, _, args} | _]} = el, {pending, acc}, name, arity)
        when type in [:def, :defp] do
-    {[], acc ++ pending ++ [el]}
+    cond do
+      arity == :unmatched ->
+        {[], acc ++ pending ++ [el]}
+      length(args) == arity ->
+        {[], acc ++ pending ++ [el]}
+      true ->
+        {[], acc}
+    end
   end
 
-  defp eval_elem({type, _, _}, {_pending, acc}, _name) when type in [:def, :defp] do
+  defp eval_elem({type, _, _}, {_pending, acc}, _name, _arity) when type in [:def, :defp] do
     {[], acc}
   end
 
-  defp eval_elem({type, _, _}, {pending, acc}, _name) when type in [:alias] do
+  defp eval_elem({type, _, _}, {pending, acc}, _name, _artiy) when type in [:alias] do
     {pending, acc}
   end
 
-  defp eval_elem(el, {pending, acc}, _name) do
+  defp eval_elem(el, {pending, acc}, _name, _artiy) do
     {pending ++ [el], acc}
   end
 end

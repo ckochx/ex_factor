@@ -8,4 +8,11 @@ defmodule ExFactor do
   If the Module exists, it add the function to the end of the file and change all calls to the
   new module's name.
   """
+
+  alias ExFactor.Extractor
+
+  @doc """
+  Call Extractor module emaplce/1
+  """
+  def refactor(opts), do: Extractor.emplace(opts)
 end

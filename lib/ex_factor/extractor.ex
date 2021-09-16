@@ -5,6 +5,11 @@ defmodule ExFactor.Extractor do
   alias ExFactor.Neighbors
   alias ExFactor.Parser
 
+  @doc """
+  Given a keyword list of opts, find the function in the specified source, refactor it, the docs,
+  specs, and any miscellaneous attrs proximate to the source function into the specified module.
+  """
+
   def emplace(opts) do
     source_module = Keyword.get(opts, :source_module)
     target_module = Keyword.get(opts, :target_module)
@@ -12,8 +17,8 @@ defmodule ExFactor.Extractor do
     arity = Keyword.get(opts, :arity)
     target_path = Keyword.get(opts, :target_path, path(target_module))
     source_path = Keyword.get(opts, :source_path, path(source_module))
-    {ast, block_contents} = Parser.block_contents(source_path)
-    to_extract = Neighbors.prev(block_contents, source_function)
+    {_ast, block_contents} = Parser.block_contents(source_path)
+    to_extract = Neighbors.walk(block_contents, source_function, arity)
 
     case File.exists?(target_path) do
       true ->
@@ -39,6 +44,21 @@ defmodule ExFactor.Extractor do
 
         File.write(target_path, content)
     end
+  end
+
+  def remove(opts) do
+    source_module = Keyword.get(opts, :source_module)
+    # target_module = Keyword.get(opts, :target_module)
+    source_function = Keyword.get(opts, :source_function)
+    arity = Keyword.get(opts, :arity)
+    # target_path = Keyword.get(opts, :target_path, path(target_module))
+    source_path = Keyword.get(opts, :source_path, path(source_module))
+    {_ast, functions} = Parser.all_functions(source_path)
+    functions |> IO.inspect(label: "")
+    # to_extract = Neighbors.walk(block_contents, source_function, arity)
+    # |> IO.inspect(label: "to_extract")
+
+
   end
 
   defp path(module) do

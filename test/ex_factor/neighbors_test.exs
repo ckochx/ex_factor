@@ -31,7 +31,7 @@ defmodule ExFactor.NeighborsTest do
                {:@, _, [{:somedoc, _, ["This is somedoc"]}]},
                {:@, _, [{:doc, _, ["\n  multiline\n  documentation for pub1\n  "]}]},
                {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
-             ] = Neighbors.prev(block, :pub1)
+             ] = Neighbors.walk(block, :pub1)
     end
 
     test "it should handle the first function without anything before" do
@@ -53,7 +53,7 @@ defmodule ExFactor.NeighborsTest do
 
       assert [
                {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
-             ] = Neighbors.prev(block, :pub1)
+             ] = Neighbors.walk(block, :pub1)
     end
 
     test "it should handle ignore the aliases" do
@@ -76,7 +76,7 @@ defmodule ExFactor.NeighborsTest do
 
       assert [
                {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
-             ] = Neighbors.prev(block, :pub1)
+             ] = Neighbors.walk(block, :pub1)
     end
 
     test "it should return all the instances of a target fn" do
@@ -100,7 +100,30 @@ defmodule ExFactor.NeighborsTest do
                {:def, [line: 2], [{:pub1, [line: 2], [:error]}, [do: :error]]},
                {:def, [line: 5], [{:pub1, [line: 5], [:ok]}, [do: {:ok, [line: 5], nil}]]},
                {:def, [line: 6], [{:pub1, [line: 6], [{:arg1, [line: 6], nil}]}, [do: :ok]]}
-             ] = Neighbors.prev(block, :pub1)
+             ] = Neighbors.walk(block, :pub1)
+    end
+
+    test "it should return all the instances of a target fn with optional arity match" do
+      module =
+        """
+        defmodule ExFactorSampleModule do
+          def pub1(:error) do
+            :error
+          end
+          def pub1(:ok), do: ok
+          def pub1(arg1, arg2) do
+            :ok
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+
+      {_ast, block} = Parser.block_contents(module)
+
+      assert [
+               {:def, [line: 2], [{:pub1, [line: 2], [:error]}, [do: :error]]},
+               {:def, [line: 5], [{:pub1, [line: 5], [:ok]}, [do: {:ok, [line: 5], nil}]]}
+             ] = Neighbors.walk(block, :pub1, 1)
     end
 
     test "it should return all the instances of a target fn, specs, docs, and arbitrary" do
@@ -137,7 +160,7 @@ defmodule ExFactor.NeighborsTest do
                {:def, [line: 7], [{:pub1, [line: 7], [:ok]}, [do: {:ok, [line: 7], nil}]]},
                {:=, [line: 8], [{:_docp, [line: 8], nil}, "docp pub1-1"]},
                {:def, [line: 9], [{:pub1, [line: 9], [{:arg1, [line: 9], nil}]}, [do: :ok]]}
-             ] = Neighbors.prev(block, :pub1)
+             ] = Neighbors.walk(block, :pub1)
     end
   end
 end

@@ -3,13 +3,42 @@ defmodule ExFactor.Parser do
   Documentation for `ExFactor.Parser`.
   """
 
+  # @doc """
+  # Identify public and private functions from a module AST.
+  # """
+  def read_file(filepath) when is_binary(filepath) do
+    contents = File.read!(filepath)
+    list = String.split(contents, "\n")
+    {:ok, ast} = Code.string_to_quoted(contents, token_metadata: true)
+    {ast, list}
+  end
+
+  def block_contents(filepath) when is_binary(filepath) do
+    filepath
+    |> File.read!()
+    |> Code.string_to_quoted(token_metadata: true)
+    |> block_contents()
+  end
+
+  def block_contents({:ok, ast}) do
+    # {_ast, block} =
+    Macro.postwalk(ast, [], fn node, acc ->
+      {node, ast_block(node, acc)}
+    end)
+
+    # Macro.postwalk(block, [], fn node, acc ->
+    #   {node, walk_ast(node, acc, :def)}
+    #   # |> IO.inspect(label: "walk AST")
+    # end)
+  end
+
   @doc """
   Identify public and private functions from a module AST.
   """
   def all_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted()
+    |> Code.string_to_quoted(token_metadata: true)
     |> all_functions()
   end
 
@@ -25,8 +54,7 @@ defmodule ExFactor.Parser do
   def public_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted()
-    # |> IO.inspect(label: "all funxs")
+    |> Code.string_to_quoted(token_metadata: true)
     |> public_functions()
   end
 
@@ -36,37 +64,110 @@ defmodule ExFactor.Parser do
     end)
   end
 
+  # def public_functions({:ok, ast}) do
+  #   ast |> IO.inspect(label: "")
+  #   Macro.postwalk(ast, {:prev, []}, fn node, acc ->
+  #     {node, walk_ast(node, acc, :def)}
+  #     # |> IO.inspect(label: "walk AST")
+  #   end)
+  # end
+
   @doc """
   Identify private functions from a module AST.
   """
   def private_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted()
+    |> Code.string_to_quoted(token_metadata: true)
     |> private_functions()
   end
 
   def private_functions({:ok, ast}) do
-    # Macro.prewalk(ast, [], fn node, acc ->
-    #   # walk_ast(node, acc, :def)
-    #   {node, walk_ast(node, acc, :def)}
-    #   # |> IO.inspect(label: "walk_ast")
-    # end)
-
     Macro.postwalk(ast, [], fn node, acc ->
-      # walk_ast(node, acc, :def)
       {node, walk_ast(node, acc, :defp)}
-      # |> IO.inspect(label: "walk_ast")
     end)
   end
 
-  defp walk_ast({tkn, _, [{name, _meta, args} | _]} = func, acc, token) when tkn == token do
-    arity = length(args)
-    map = %{name: name, ast: func, arity: arity, defn: token}
+  defp walk_ast({:@, _, [{:doc, _meta, _} | _]} = node, acc, _token) do
+    map = %{name: :doc, ast: node, arity: 0, defn: "@doc"}
     [map | acc]
   end
 
-  defp walk_ast(_func, acc, _token) do
+  defp walk_ast({:@, fn_meta, [{:spec, _meta, [{_, _, [{name, _, args} | _]} | _]} | _]} = node, acc, _token) do
+    arity = length(args)
+    map = merge_maps(%{name: name, ast: node, arity: arity, defn: "@spec"}, fn_meta)
+    # map =
+    #   fn_meta
+    #   |> IO.inspect(label: "spec meta")
+    #   |> find_lines()
+      # |> Map.merge(%{name: :spec, ast: node, arity: arity, defn: "@spec"})
+    [map | acc]
+  end
+
+  defp walk_ast({tkn, fn_meta, [{:when, _when_meta, [{name, _meta, args} | _]} | _]} = node, acc, token) when tkn == token do
+    arity = length(args)
+    map = merge_maps(%{name: name, ast: node, arity: arity, defn: token}, fn_meta)
+      # fn_meta
+      # |> find_lines()
+      # |> Map.merge()
+    [map | acc]
+  end
+
+  defp walk_ast({tkn, fn_meta, [{name, _meta, args} | _]} = node, acc, token) when tkn == token do
+    arity = length(args)
+    map = merge_maps(%{name: name, ast: node, arity: arity, defn: token}, fn_meta)
+      # fn_meta
+      # |> find_lines()
+      # |> Map.merge()
+    [map | acc]
+  end
+
+  defp walk_ast(_node, acc, _token) do
+    # node |> IO.inspect(label: "")
+    acc
+  end
+
+  defp merge_maps(map, meta) do
+    meta
+    |> find_lines()
+    |> Map.merge(map)
+  end
+
+  defp find_lines(meta) do
+    start_line = Keyword.get(meta, :line, :unknown)
+    end_line = find_end_line(meta)
+    %{start_line: start_line, end_line: end_line}
+  end
+
+  defp find_end_line(meta) do
+    end_expression_line = meta
+    |> Keyword.get(:end_of_expression, [])
+    |> Keyword.get(:line, :unknown)
+    end_line = meta
+    |> Keyword.get(:end, [])
+    |> Keyword.get(:line, :unknown)
+
+    cond do
+      end_line != :unknown -> end_line
+      end_expression_line != :unknown -> end_expression_line
+      true -> :unknown
+    end
+  end
+
+  defp ast_block([do: {:__block__, [], block_contents}], _acc) do
+    block_contents
+  end
+
+  defp ast_block(_block, acc) do
     acc
   end
 end
+
+
+[{:"::", [line: 2], [
+     {:priv1, [closing: [line: 2], line: 2],
+      [{:term, [closing: [line: 2], line: 2], []}]},
+     {:term, [closing: [line: 2], line: 2], []}
+   ]
+  }
+]

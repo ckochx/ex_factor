@@ -47,8 +47,56 @@ defmodule ExFactor.ParserTest do
       assert f1.arity == 1
     end
 
+    test "it should report public fns with start and end lines" do
+        content = """
+        defmodule ExFactorSampleModule do
+          @somedoc "This is somedoc"
+          # no aliases
+          def pub1(arg1) do
+            :ok
+          end
+        end
+        """
+        # |> Code.string_to_quoted()
+
+      File.write("test/tmp/other_module.ex", content)
+
+      {_ast, [f1]} = Parser.public_functions("test/tmp/other_module.ex")
+      assert f1.name == :pub1
+      assert f1.arity == 1
+      assert f1.start_line == 4
+      assert f1.end_line == 6
+    end
+
+    test "it should report specs with start and end lines" do
+      module = """
+        defmodule ExFactorSampleModule do
+          @somedoc "This is somedoc"
+          # no aliases
+          @spec pub1(term()) :: term()
+          def pub1(arg1) do
+            :ok
+          end
+        end
+        """
+
+      File.write("test/tmp/other_module.ex", module)
+
+      {_ast, [f1, f2]} = Parser.public_functions("test/tmp/other_module.ex")
+      assert f1.name == :pub1
+      assert f1.arity == 1
+      assert f1.start_line == 5
+      assert f1.end_line == 7
+
+      assert f2.name == :pub1
+      assert f2.defn == "@spec"
+      assert f2.arity == 1
+      assert f2.start_line == 4
+      assert f2.end_line == 4
+    end
+
     test "it should report TWO public fns" do
-      {_ast, [f1, f2]} =
+      content =
         """
         defmodule ExFactorSampleModule do
           @somedoc "This is somedoc"
@@ -57,20 +105,60 @@ defmodule ExFactor.ParserTest do
             :ok
           end
 
-          def pub2(arg2) do
-            :yes
-          end
+          def pub2(arg2)
+            do
+              #comment
+              :yes
+            end
 
           defp pub3(arg3) do
             :private
           end
         end
         """
-        |> Code.string_to_quoted()
-        |> Parser.public_functions()
+      File.write("test/tmp/other_module.ex", content)
+
+      {_ast, [f1, f2]} = Parser.public_functions("test/tmp/other_module.ex")
 
       assert f2.name == :pub1
+      assert f2.start_line == 4
+      assert f2.end_line == 6
       assert f1.name == :pub2
+      assert f1.start_line == 8
+      assert f1.end_line == 12
+    end
+
+    # @tag :skip
+    test "it should handle when clauses" do
+      content =
+        """
+        defmodule ExFactorSampleModule do
+          @somedoc "This is somedoc"
+          # no aliases
+          def pub1(arg1) do
+            :ok
+          end
+
+          def pub2(arg2) when is_map(arg2) and not is_nil(arg2)
+            do
+              #comment
+              :yes
+            end
+
+          defp pub3(arg3) do
+            :private
+          end
+        end
+        """
+      File.write("test/tmp/other_module.ex", content)
+
+      {_ast, [f1, f2]} = Parser.public_functions("test/tmp/other_module.ex")
+
+      assert f2.name == :pub1
+      assert f2.start_line == 4
+      assert f2.end_line == 6
+      assert f1.name == :pub2
+      assert f1.start_line == 8
     end
 
     test "it should return all versions of a public fn" do
@@ -106,7 +194,7 @@ defmodule ExFactor.ParserTest do
       end
       """
 
-      File.write("test/support/other_module.ex", content)
+      File.write("test/tmp/other_module.ex", content)
 
       {_ast, fns} =
         """
@@ -127,7 +215,7 @@ defmodule ExFactor.ParserTest do
       m = List.first(fns)
       Macro.decompose_call(m.ast)
 
-      File.rm("test/support/other_module.ex")
+      File.rm("test/tmp/other_module.ex")
     end
   end
 
@@ -171,6 +259,56 @@ defmodule ExFactor.ParserTest do
       assert f1.name == :priv1
       assert f1.arity == 2
       assert f1.defn == :defp
+    end
+
+    test "it should report specs with start and end lines" do
+      module = """
+        defmodule ExFactorSampleModule do
+          @spec priv1(term()) :: term()
+          defp priv1(arg1) do
+            :ok
+          end
+        end
+        """
+
+      File.write("test/tmp/other_module.ex", module)
+
+      {_ast, [f1, f2]} = Parser.private_functions("test/tmp/other_module.ex")
+      assert f1.name == :priv1
+      assert f1.arity == 1
+      assert f1.start_line == 3
+      assert f1.end_line == 5
+
+      assert f2.name == :priv1
+      assert f2.defn == "@spec"
+      assert f2.arity == 1
+      assert f2.start_line == 2
+      assert f2.end_line == 2
+    end
+
+    test "it should report specs with 0-arity" do
+      module = """
+        defmodule ExFactorSampleModule do
+          @spec priv1() :: any()
+          defp priv1() do
+            :ok
+          end
+        end
+        """
+
+      File.write("test/tmp/other_module.ex", module)
+
+      {_ast, [f1, f2]} = Parser.private_functions("test/tmp/other_module.ex")
+      assert f1.name == :priv1
+      assert f1.arity == 0
+      assert f1.start_line == 3
+      assert f1.end_line == 5
+
+      assert f2.name == :priv1
+      assert f2.defn == "@spec"
+      assert f2.arity == 0
+      assert f2.start_line == 2
+      assert f2.end_line == 2
     end
 
     test "it should report TWO private fns" do
@@ -232,6 +370,34 @@ defmodule ExFactor.ParserTest do
       assert f3.name == :priv3
       assert f3.defn == :defp
       assert f3.arity == 3
+    end
+
+    test "it should report all fns, don't dupe specs" do
+      {_ast, functions} =
+        """
+        defmodule ExFactorSampleModule do
+          @somedoc "This is somedoc"
+          # no aliases
+          @spec pub1(term()) :: term()
+          def pub1(arg1) do
+            :ok
+          end
+
+          @spec pub2(term()) :: term()
+          def pub2(arg2) do
+            :yes
+          end
+
+          @spec priv3(term(), term(), term()) :: term()
+          defp priv3(arg3_1, arg3_2, arg3_3) do
+            :private
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+        |> Parser.all_functions()
+
+      assert Enum.count(functions, &(&1.defn == "@spec")) == 3
     end
   end
 

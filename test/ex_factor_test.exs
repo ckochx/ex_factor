@@ -1,13 +1,57 @@
 defmodule ExFactorTest do
-  # use ExUnit.Case
+  use ExUnit.Case
 
-  # describe "callers/1" do
-  #   test "it should report callers of a module" do
-  #     [one, _three, two] = ExFactor.callers(ExFactor.Parser)
+  describe "refactor/1" do
+    test "it should refactors the functions into a new module, specified in opts" do
+      File.rm("lib/ex_factor/source_module.ex")
+      File.rm("lib/ex_factor/target_module.ex")
 
-  #     assert one.dependency_type == "(runtime)"
-  #     assert one.filepath == "lib/ex_factor.ex"
-  #     assert two.filepath == "test/support/support.ex"
-  #   end
-  # end
+      content = """
+      defmodule ExFactor.SourceModule do
+        @somedoc "This is somedoc"
+        @doc "this is some documentation for refactor1/1"
+        def refactor1(arg1) do
+          :ok
+        end
+        def refactor1([]) do
+          :empty
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.TargetModule do
+        @somedoc "This is somedoc TargetModule"
+        @doc "some docs"
+        def pub_exists(arg_exists) do
+          :ok
+        end
+        def pub_exists(:error) do
+          :error
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/target_module.ex", content)
+
+      opts = [
+        target_module: ExFactor.TargetModule,
+        source_module: ExFactor.SourceModule,
+        source_function: :refactor1,
+        arity: 1
+      ]
+
+      ExFactor.refactor(opts)
+
+      file = File.read!("lib/ex_factor/target_module.ex")
+      assert file =~ "def(refactor1(arg1)) do"
+      assert file =~ "def(refactor1([])) do"
+      assert file =~ " @doc \"some docs\""
+
+      File.rm("lib/ex_factor/source_module.ex")
+      File.rm("lib/ex_factor/target_module.ex")
+    end
+  end
 end
