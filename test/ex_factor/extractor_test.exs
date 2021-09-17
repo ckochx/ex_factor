@@ -3,6 +3,18 @@ defmodule ExFactor.ExtractorTest do
   alias ExFactor.Extractor
 
   describe "emplace/1" do
+    test "requires some options" do
+      opts = [
+        # target_module: ExFactor.NewMod,
+        source_module: ExFactorSampleModule,
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      assert_raise KeyError, "key :target_module not found in: #{inspect(opts)}", fn -> Extractor.emplace(opts) end
+      # assert message == ""
+    end
+
     test "write a new file with the function" do
       content = """
       defmodule ExFactorSampleModule do

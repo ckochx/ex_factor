@@ -10,13 +10,23 @@ defmodule ExFactor.Extractor do
   Given a keyword list of opts, find the function in the specified source.
   Add the function (and any accociated attrs: @doc, @spec, ) into the target module. refactor it, the docs,
   specs, and any miscellaneous attrs proximate to the source function into the specified module.
+
+  Required keys:
+    - :source_module
+    - :target_module
+    - :source_function
+    - :arity
+
+  Optional keys:
+    - :source_path Specify an alternate (non-standard) path for the source module
+    - :target_path Specify an alternate (non-standard) path for the destination module
   """
 
   def emplace(opts) do
-    source_module = Keyword.get(opts, :source_module)
-    target_module = Keyword.get(opts, :target_module)
-    source_function = Keyword.get(opts, :source_function)
-    arity = Keyword.get(opts, :arity)
+    source_module = Keyword.fetch!(opts, :source_module)
+    target_module = Keyword.fetch!(opts, :target_module)
+    source_function = Keyword.fetch!(opts, :source_function)
+    arity = Keyword.fetch!(opts, :arity)
     target_path = Keyword.get(opts, :target_path, path(target_module))
     source_path = Keyword.get(opts, :source_path, path(source_module))
     {_ast, block_contents} = Parser.block_contents(source_path)
@@ -52,9 +62,9 @@ defmodule ExFactor.Extractor do
   Remove the indicated function and its spec from it's original file.
   """
   def remove(opts) do
-    source_module = Keyword.get(opts, :source_module)
-    source_function = Keyword.get(opts, :source_function)
-    arity = Keyword.get(opts, :arity)
+    source_module = Keyword.fetch!(opts, :source_module)
+    source_function = Keyword.fetch!(opts, :source_function)
+    arity = Keyword.fetch!(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
     |> IO.inspect(label: "REMOVE source_path")
 
