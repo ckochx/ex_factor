@@ -56,6 +56,7 @@ defmodule ExFactor.Extractor do
     source_function = Keyword.get(opts, :source_function)
     arity = Keyword.get(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
+    |> IO.inspect(label: "REMOVE source_path")
 
     Remover.remove(source_path, source_function, arity)
   end

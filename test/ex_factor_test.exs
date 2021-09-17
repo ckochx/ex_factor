@@ -2,7 +2,7 @@ defmodule ExFactorTest do
   use ExUnit.Case
 
   describe "refactor/1" do
-    test "it should refactors the functions into a new module, specified in opts" do
+    test "it refactors the functions into a new module, specified in opts" do
       File.rm("lib/ex_factor/source_module.ex")
       File.rm("lib/ex_factor/target_module.ex")
 
@@ -49,9 +49,15 @@ defmodule ExFactorTest do
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def(refactor1([])) do"
       assert file =~ " @doc \"some docs\""
+      assert file =~ "def pub_exists(arg_exists) do"
 
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      file = File.read!("lib/ex_factor/source_module.ex")
+      |> IO.inspect(label: "")
+      refute file =~ "def refactor1(arg1) do"
+      refute file =~ "def refactor1([]) do"
+
+      # File.rm("lib/ex_factor/source_module.ex")
+      # File.rm("lib/ex_factor/target_module.ex")
     end
   end
 end
