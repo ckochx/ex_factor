@@ -25,7 +25,6 @@ Use at your peril, _for now._
   - [] find types referenced in the moved specs
   - [] find private functions references in refactored fn bodies.
   - [] update test file refs by CLI option
-  - [] format changes
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
   - [] guthub actions, run test suite
@@ -34,6 +33,7 @@ Use at your peril, _for now._
   - [X] Write a mix task to invoke the Refactorer
   - [X] dry-run option
   - [X] CLI output, list files changed and created.
+  - [X] format changes
 
 ## Installation
 

@@ -65,7 +65,5 @@ defmodule ExFactor.Remover do
     File.write(path, contents, [:write])
   end
 
-  defp path(module) do
-    Path.join(["lib", Macro.underscore(module) <> ".ex"])
-  end
+  defp path(module), do: ExFactor.path(module)
 end

@@ -67,9 +67,7 @@ defmodule ExFactor.Extractor do
     end
   end
 
-  defp path(module) do
-    Path.join(["lib", Macro.underscore(module) <> ".ex"])
-  end
+  defp path(module), do: ExFactor.path(module)
 
   defp refactor_message, do: "#refactored function moved with ExFactor"
 

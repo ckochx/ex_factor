@@ -13,11 +13,23 @@ defmodule ExFactor do
   alias ExFactor.Remover
 
   @doc """
-  Call Extractor module emaplce/1
+  Call Extractor, Remover, and Formatter modules
   """
   def refactor(opts) do
+    source_module = Keyword.fetch!(opts, :source_module)
+    target_module = Keyword.fetch!(opts, :target_module)
+
+    opts =
+      opts
+      |> Keyword.put_new(:target_path, path(target_module))
+      |> Keyword.put_new(:source_path, path(source_module))
+
     emplace = Extractor.emplace(opts)
     remove = Remover.remove(opts)
     {emplace, remove}
+  end
+
+  def path(module) do
+    Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
 end
