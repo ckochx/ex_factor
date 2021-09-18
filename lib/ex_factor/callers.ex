@@ -2,6 +2,7 @@ defmodule ExFactor.Callers do
   @moduledoc """
   Documentation for `ExFactor.Callers`.
   """
+  import ExUnit.CaptureIO
 
   alias ExFactor.Parser
 
@@ -11,8 +12,7 @@ defmodule ExFactor.Callers do
   use `mix xref` list all the callers of a given module.
   """
   def callers(mod) do
-    System.cmd("mix", ["xref", "callers", "#{mod}"], env: [{"MIX_ENV", "test"}])
-    |> elem(0)
+    capture_io(fn -> Mix.Tasks.Xref.run(["callers", mod]) end)
     |> String.trim()
     |> String.split("\n")
     |> mangle_list()

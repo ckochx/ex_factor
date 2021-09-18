@@ -39,7 +39,6 @@ defmodule ExFactor.Parser do
   def all_functions({:ok, _ast} = input) do
     {_ast, public_functions} = public_functions(input)
     {ast, private_functions} = private_functions(input)
-    {ast, public_functions ++ private_functions}
     all_fns = public_functions ++ private_functions
     {ast, Enum.uniq(all_fns)}
   end
