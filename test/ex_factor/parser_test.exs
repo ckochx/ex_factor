@@ -454,7 +454,7 @@ defmodule ExFactor.ParserTest do
 
       assert List.first(list) == "defmodule ExFactorSampleModule do"
       assert Enum.at(list, -2) == "end"
-      assert {:defmodule, [do: [line: 1], end: [line: 8], line: 1], _} = ast
+      assert {:defmodule, [do: [line: 1], end: [line: 9], line: 1], _} = ast
     end
 
     test "raises an exception for an invalid file path" do

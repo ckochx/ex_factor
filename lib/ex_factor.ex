@@ -10,9 +10,14 @@ defmodule ExFactor do
   """
 
   alias ExFactor.Extractor
+  alias ExFactor.Remover
 
   @doc """
   Call Extractor module emaplce/1
   """
-  def refactor(opts), do: Extractor.emplace(opts)
+  def refactor(opts) do
+    emplace = Extractor.emplace(opts)
+    remove = Remover.remove(opts)
+    {emplace, remove}
+  end
 end

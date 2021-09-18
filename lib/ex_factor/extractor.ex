@@ -33,7 +33,7 @@ defmodule ExFactor.Extractor do
     to_extract = block_contents
     |> Neighbors.walk(source_function, arity)
     |> Enum.map(&(Macro.to_string(&1)))
-    |> IO.inspect(label: "to string")
+    # |> IO.inspect(label: "to string")
 
     string_fns = Enum.join(to_extract, "\n")
 

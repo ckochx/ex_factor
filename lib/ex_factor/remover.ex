@@ -10,8 +10,9 @@ defmodule ExFactor.Remover do
   """
   def remove(opts) do
     source_function = Keyword.fetch!(opts, :source_function)
+    source_module = Keyword.get(opts, :source_module)
     arity = Keyword.fetch!(opts, :arity)
-    source_path = Keyword.fetch!(opts, :source_path)
+    source_path = Keyword.get(opts, :source_path, path(source_module))
     dry_run = Keyword.get(opts, :dry_run, false)
     # |> IO.inspect(label: "REMOVE source_path")
 
@@ -59,5 +60,9 @@ defmodule ExFactor.Remover do
 
   defp write_file(path, contents, _) do
     File.write(path, contents, [:write])
+  end
+
+  defp path(module) do
+    Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
 end

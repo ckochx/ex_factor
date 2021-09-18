@@ -42,8 +42,8 @@ defmodule Mix.Tasks.ExFactor.Refactor do
       ]
     )
 
-    parsed_opts
-    |> IO.inspect(label: "PARSED ARGS")
+    # parsed_opts
+    # |> IO.inspect(label: "PARSED ARGS")
 
     # Mix.Task.run("app.start")
     parsed_opts

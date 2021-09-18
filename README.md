@@ -23,9 +23,10 @@ to a new file/module. At this time, ExFactor cannot change the function arity.
   - [] update test file refs by CLI option
   - [] format changes
   - [] CLI output, list files changed and created.
-  - [] dry-run option
+  - [X] dry-run option
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
+  - [] guthub actions, run test suite
 
 
 ## Installation
