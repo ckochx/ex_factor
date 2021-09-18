@@ -439,6 +439,7 @@ defmodule ExFactor.ParserTest do
     test "it reads the file into an AST and list of each line" do
       content = """
       defmodule ExFactorSampleModule do
+        alias ExFactorOtherModule
         @somedoc "This is somedoc"
         # comments get dropped
         _docp = "arbitrary module-level elem"

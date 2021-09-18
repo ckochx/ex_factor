@@ -5,9 +5,19 @@ defmodule ExFactor.Remover do
 
   alias ExFactor.Parser
 
-  def remove(source_path, fn_name, arity) do
+  @doc """
+  Remove the indicated function and its spec from it's original file.
+  """
+  def remove(opts) do
+    source_function = Keyword.fetch!(opts, :source_function)
+    arity = Keyword.fetch!(opts, :arity)
+    source_path = Keyword.fetch!(opts, :source_path)
+    dry_run = Keyword.get(opts, :dry_run, false)
+    # |> IO.inspect(label: "REMOVE source_path")
+
+
     {_ast, block_contents} = Parser.all_functions(source_path)
-    fns_to_remove = Enum.filter(block_contents, &(&1.name == fn_name))
+    fns_to_remove = Enum.filter(block_contents, &(&1.name == source_function))
     {_ast, line_list} = Parser.read_file(source_path)
 
     Enum.reduce(fns_to_remove, line_list, fn function, acc ->
@@ -20,10 +30,10 @@ defmodule ExFactor.Remover do
       |> Enum.reduce(acc, fn idx, acc ->
         List.delete_at(acc, idx - 1)
       end)
-      |> List.insert_at(function.start_line, comment(fn_name, arity, function.defn))
+      |> List.insert_at(function.start_line, comment(source_function, arity, function.defn))
     end)
     |> Enum.join("\n")
-    |> then(fn str -> File.write(source_path, str, [:write]) end)
+    |> then(fn str -> write_file(source_path, str, dry_run) end)
   end
 
   defp comment(name, arity, "@spec") do
@@ -41,5 +51,13 @@ defmodule ExFactor.Remover do
     # may remain for you to remove manually.
     #
     """
+  end
+
+  defp write_file(_path, contents, true) do
+    contents
+  end
+
+  defp write_file(path, contents, _) do
+    File.write(path, contents, [:write])
   end
 end

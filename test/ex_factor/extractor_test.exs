@@ -2,17 +2,23 @@ defmodule ExFactor.ExtractorTest do
   use ExUnit.Case
   alias ExFactor.Extractor
 
+  setup_all do
+    File.mkdir_p("test/tmp")
+
+    on_exit(fn ->
+      File.rm_rf("test/tmp")
+    end)
+  end
+
   describe "emplace/1" do
     test "requires some options" do
       opts = [
-        # target_module: ExFactor.NewMod,
         source_module: ExFactorSampleModule,
         source_function: :pub1,
         arity: 1
       ]
 
       assert_raise KeyError, "key :target_module not found in: #{inspect(opts)}", fn -> Extractor.emplace(opts) end
-      # assert message == ""
     end
 
     test "write a new file with the function" do
@@ -28,16 +34,16 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("test/support/source_module.ex", content)
+      File.write("test/tmp/source_module.ex", content)
 
-      target_path = "test/support/target_module.ex"
+      target_path = "test/tmp/target_module.ex"
       File.rm(target_path)
 
       opts = [
         target_path: target_path,
         target_module: ExFactor.NewMod,
         source_module: ExFactorSampleModule,
-        source_path: "test/support/source_module.ex",
+        source_path: "test/tmp/source_module.ex",
         source_function: :pub1,
         arity: 1
       ]
@@ -50,10 +56,45 @@ defmodule ExFactor.ExtractorTest do
       # includes additional attrs
       assert file =~ "@spec(pub1(term()) :: term())"
       assert file =~ "@somedoc(\"This is somedoc\")"
+      # assert the added elements get flattened correctly
+      refute file =~ "[@somedoc(\"This is somedoc\"), "
       # comments don't get moved
       refute file =~ "# a comment and no aliases"
-      File.rm("test/support/source_module.ex")
-      File.rm("test/support/target_module.ex")
+      File.rm("test/tmp/source_module.ex")
+      File.rm("test/tmp/target_module.ex")
+    end
+
+    test " with dry_run option, don't write the file." do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        @spec pub1(term()) :: term()
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      target_path = "test/tmp/target_module.ex"
+      File.rm(target_path)
+
+      opts = [
+        target_path: target_path,
+        target_module: ExFactor.NewMod,
+        source_module: ExFactorSampleModule,
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub1,
+        arity: 1,
+        dry_run: true
+      ]
+
+      output = Extractor.emplace(opts)
+      assert {:error, :enoent} = File.read(target_path)
+      assert output =~ "defmodule(ExFactor.NewMod) do"
     end
 
     test "write a new file with the function, infer some defaults" do
@@ -101,7 +142,7 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/source_module.ex", content)
+      File.write("test/tmp/source_module.ex", content)
 
       content = """
       defmodule ExFactor.TargetModule do
@@ -203,6 +244,7 @@ defmodule ExFactor.ExtractorTest do
 
       content = """
       defmodule ExFactor.TargetModule do
+        @moduledoc false
         @somedoc "This is somedoc TargetModule"
         @doc "some docs"
         def pub_exists(arg_exists) do
@@ -226,45 +268,13 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!("lib/ex_factor/target_module.ex")
+      |> IO.inspect(label: "")
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def(refactor1([])) do"
       assert file =~ " @doc \"some docs\""
 
       File.rm("lib/ex_factor/source_module.ex")
       File.rm("lib/ex_factor/target_module.ex")
-    end
-  end
-
-  describe "remove/1" do
-    test "remove the given function from the source module" do
-      content = """
-      defmodule ExFactorSampleModule do
-        @somedoc "This is somedoc"
-        # a comment and no aliases
-        _docp = "here's an arbitrary module underscore"
-        def pub1(arg1) do
-          :ok
-        end
-      end
-      """
-
-      File.write("test/support/source_module.ex", content)
-      source_path = "test/support/source_module.ex"
-
-      opts = [
-        source_module: ExFactorSampleModule,
-        source_path: "test/support/source_module.ex",
-        source_function: :pub1,
-        arity: 1
-      ]
-
-      Extractor.remove(opts)
-
-      file = File.read!(source_path)
-      assert file =~ "defmodule ExFactorSampleModule do"
-      assert file =~ "_docp = \"here's an arbitrary module underscore"
-      refute file =~ "def pub1(arg1) do"
-      File.rm("test/support/source_module.ex")
     end
   end
 end

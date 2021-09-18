@@ -4,7 +4,6 @@ defmodule ExFactor.Extractor do
   """
   alias ExFactor.Neighbors
   alias ExFactor.Parser
-  alias ExFactor.Remover
 
   @doc """
   Given a keyword list of opts, find the function in the specified source.
@@ -29,46 +28,40 @@ defmodule ExFactor.Extractor do
     arity = Keyword.fetch!(opts, :arity)
     target_path = Keyword.get(opts, :target_path, path(target_module))
     source_path = Keyword.get(opts, :source_path, path(source_module))
+    dry_run = Keyword.get(opts, :dry_run, false)
     {_ast, block_contents} = Parser.block_contents(source_path)
-    to_extract = Neighbors.walk(block_contents, source_function, arity)
+    to_extract = block_contents
+    |> Neighbors.walk(source_function, arity)
+    |> Enum.map(&(Macro.to_string(&1)))
+    |> IO.inspect(label: "to string")
+
+    string_fns = Enum.join(to_extract, "\n")
 
     case File.exists?(target_path) do
       true ->
         {ast, list} = Parser.read_file(target_path)
         {:defmodule, [do: [line: _begin_line], end: [line: end_line], line: _], _} = ast
-        string_fns = Macro.to_string(to_extract)
+        # string_fns = Macro.to_string(to_extract)
+        # string_fns = Enum.join(to_extract, "\n")
 
         list
         |> List.insert_at(end_line - 1, refactor_message())
         |> List.insert_at(end_line, string_fns)
         |> Enum.join("\n")
-        |> then(fn contents -> File.write(target_path, contents, [:write]) end)
+        |> then(fn contents -> write_file(target_path, contents, dry_run) end)
 
       _ ->
-        content =
+        contents =
           quote generated: true do
             defmodule unquote(target_module) do
               @moduledoc false
-              unquote(to_extract)
+              unquote(Macro.unescape_string(string_fns))
             end
           end
           |> Macro.to_string()
 
-        File.write(target_path, content)
+        write_file(target_path, contents, dry_run)
     end
-  end
-
-  @doc """
-  Remove the indicated function and its spec from it's original file.
-  """
-  def remove(opts) do
-    source_module = Keyword.fetch!(opts, :source_module)
-    source_function = Keyword.fetch!(opts, :source_function)
-    arity = Keyword.fetch!(opts, :arity)
-    source_path = Keyword.get(opts, :source_path, path(source_module))
-    |> IO.inspect(label: "REMOVE source_path")
-
-    Remover.remove(source_path, source_function, arity)
   end
 
   defp path(module) do
@@ -76,4 +69,11 @@ defmodule ExFactor.Extractor do
   end
 
   defp refactor_message, do: "#refactored function moved with ExFactor"
+
+  defp write_file(_target_path, contents, true) do
+    contents
+  end
+  defp write_file(target_path, contents, _) do
+    File.write(target_path, contents, [:write])
+  end
 end
