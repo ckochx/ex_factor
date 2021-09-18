@@ -69,12 +69,14 @@ defmodule ExFactor.RemoverTest do
       """
 
       File.write("test/tmp/source_module.ex", module)
+
       opts = [
         source_module: ExFactorSampleModule,
         source_path: "test/tmp/source_module.ex",
         source_function: :pub1,
         arity: 1
       ]
+
       Remover.remove(opts)
 
       updated_file = File.read!("test/tmp/source_module.ex")
@@ -112,6 +114,7 @@ defmodule ExFactor.RemoverTest do
       """
 
       File.write("test/tmp/source_module.ex", module)
+
       opts = [
         dry_run: true,
         source_module: ExFactorSampleModule,
@@ -119,17 +122,22 @@ defmodule ExFactor.RemoverTest do
         source_function: :pub1,
         arity: 1
       ]
-      changes = Remover.remove(opts)
+
+      changes =
+        Remover.remove(opts)
+        |> IO.inspect(label: "")
 
       unchanged_file = File.read!("test/tmp/source_module.ex")
       assert unchanged_file =~ "def pub1(arg1) do"
       refute unchanged_file =~ "Function: pub1/1 removed by ExFactor"
       assert unchanged_file =~ "@spec pub1(term()) :: term()"
 
-      assert changes =~ "Function: pub1/1 removed by ExFactor"
-      refute changes =~ "@spec pub1(term()) :: term()"
-      refute changes =~ "def pub1(arg1) do"
+      assert changes.file_contents =~ "Function: pub1/1 removed by ExFactor"
+      refute changes.file_contents =~ "@spec pub1(term()) :: term()"
+      refute changes.file_contents =~ "def pub1(arg1) do"
+      assert changes.path == "test/tmp/source_module.ex"
+      assert changes.module == ExFactorSampleModule
+      assert changes.message == "--dry_run changes to make"
     end
-
   end
 end

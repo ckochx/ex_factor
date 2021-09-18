@@ -14,8 +14,6 @@ defmodule ExFactor.Remover do
     arity = Keyword.fetch!(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
     dry_run = Keyword.get(opts, :dry_run, false)
-    # |> IO.inspect(label: "REMOVE source_path")
-
 
     {_ast, block_contents} = Parser.all_functions(source_path)
     fns_to_remove = Enum.filter(block_contents, &(&1.name == source_function))
@@ -34,7 +32,7 @@ defmodule ExFactor.Remover do
       |> List.insert_at(function.start_line, comment(source_function, arity, function.defn))
     end)
     |> Enum.join("\n")
-    |> then(fn str -> write_file(source_path, str, dry_run) end)
+    |> then(fn str -> write_file(source_path, str, source_module, dry_run) end)
   end
 
   defp comment(name, arity, "@spec") do
@@ -54,11 +52,16 @@ defmodule ExFactor.Remover do
     """
   end
 
-  defp write_file(_path, contents, true) do
-    contents
+  defp write_file(path, contents, source_module, true) do
+    %{
+      module: source_module,
+      path: path,
+      message: "--dry_run changes to make",
+      file_contents: contents
+    }
   end
 
-  defp write_file(path, contents, _) do
+  defp write_file(path, contents, _source_module, _) do
     File.write(path, contents, [:write])
   end
 

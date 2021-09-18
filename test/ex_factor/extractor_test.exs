@@ -20,7 +20,9 @@ defmodule ExFactor.ExtractorTest do
         arity: 1
       ]
 
-      assert_raise KeyError, "key :target_module not found in: #{inspect(opts)}", fn -> Extractor.emplace(opts) end
+      assert_raise KeyError, "key :target_module not found in: #{inspect(opts)}", fn ->
+        Extractor.emplace(opts)
+      end
     end
 
     test "write a new file with the function" do
@@ -96,7 +98,9 @@ defmodule ExFactor.ExtractorTest do
 
       output = Extractor.emplace(opts)
       assert {:error, :enoent} = File.read(target_path)
-      assert output =~ "defmodule(ExFactor.NewMod) do"
+      assert output.file_contents
+      assert output.message == "--dry_run changes to make"
+      assert output.module == ExFactorSampleModule
     end
 
     test "write a new file with the function, infer some defaults" do

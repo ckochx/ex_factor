@@ -44,7 +44,6 @@ defmodule ExFactor.MixProject do
       #           license* CHANGELOG* changelog* src),
       licenses: ["CC-BY-NC-ND-4.0"],
       links: %{"GitHub" => "https://github.com/ckochx/ex_factor"}
-
     ]
   end
 end

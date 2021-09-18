@@ -29,18 +29,19 @@ defmodule Mix.Tasks.ExFactor.Refactor do
   use Mix.Task
 
   def run(argv) do
-    {parsed_opts, _, _} = OptionParser.parse(argv, strict:
-      [
-        arity: :integer,
-        dry_run: :boolean,
-        function: :string,
-        key: :string,
-        module: :string,
-        source_path: :string,
-        target: :string,
-        target_path: :string
-      ]
-    )
+    {parsed_opts, _, _} =
+      OptionParser.parse(argv,
+        strict: [
+          arity: :integer,
+          dry_run: :boolean,
+          function: :string,
+          key: :string,
+          module: :string,
+          source_path: :string,
+          target: :string,
+          target_path: :string
+        ]
+      )
 
     # parsed_opts
     # |> IO.inspect(label: "PARSED ARGS")

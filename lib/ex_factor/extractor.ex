@@ -30,9 +30,12 @@ defmodule ExFactor.Extractor do
     source_path = Keyword.get(opts, :source_path, path(source_module))
     dry_run = Keyword.get(opts, :dry_run, false)
     {_ast, block_contents} = Parser.block_contents(source_path)
-    to_extract = block_contents
-    |> Neighbors.walk(source_function, arity)
-    |> Enum.map(&(Macro.to_string(&1)))
+
+    to_extract =
+      block_contents
+      |> Neighbors.walk(source_function, arity)
+      |> Enum.map(&Macro.to_string(&1))
+
     # |> IO.inspect(label: "to string")
 
     string_fns = Enum.join(to_extract, "\n")
@@ -48,7 +51,7 @@ defmodule ExFactor.Extractor do
         |> List.insert_at(end_line - 1, refactor_message())
         |> List.insert_at(end_line, string_fns)
         |> Enum.join("\n")
-        |> then(fn contents -> write_file(target_path, contents, dry_run) end)
+        |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
 
       _ ->
         contents =
@@ -60,7 +63,7 @@ defmodule ExFactor.Extractor do
           end
           |> Macro.to_string()
 
-        write_file(target_path, contents, dry_run)
+        write_file(target_path, contents, source_module, dry_run)
     end
   end
 
@@ -70,10 +73,16 @@ defmodule ExFactor.Extractor do
 
   defp refactor_message, do: "#refactored function moved with ExFactor"
 
-  defp write_file(_target_path, contents, true) do
-    contents
+  defp write_file(target_path, contents, module, true) do
+    %{
+      module: module,
+      path: target_path,
+      message: "--dry_run changes to make",
+      file_contents: contents
+    }
   end
-  defp write_file(target_path, contents, _) do
+
+  defp write_file(target_path, contents, _module, _dry_run) do
     File.write(target_path, contents, [:write])
   end
 end
