@@ -29,14 +29,32 @@ defmodule Mix.Tasks.ExFactor.Refactor do
   use Mix.Task
 
   def run(argv) do
-    {opts, _extra_opts} = OptionParser.parse(argv, switches: [arity: :integer, module: :string, function: :string, target: :string, key: :string])
-    |> IO.inspect(label: "OptionParser")
-    # opts = Mix.shell().info(Enum.join(argv, " "))
-    opts
+    {parsed_opts, _, _} = OptionParser.parse(argv, strict:
+      [
+        arity: :integer,
+        dry_run: :boolean,
+        function: :string,
+        key: :string,
+        module: :string,
+        source_path: :string,
+        target: :string,
+        target_path: :string
+      ]
+    )
+
+    parsed_opts
     |> IO.inspect(label: "PARSED ARGS")
 
     # Mix.Task.run("app.start")
+    parsed_opts
+    |> options()
+    |> ExFactor.refactor()
+  end
 
-    ExFactor.refactor(opts)
+  defp options(opts) do
+    opts
+    |> Keyword.put(:source_function, Keyword.fetch!(opts, :function))
+    |> Keyword.put(:source_module, Keyword.fetch!(opts, :module))
+    |> Keyword.put(:target_module, Keyword.fetch!(opts, :target))
   end
 end

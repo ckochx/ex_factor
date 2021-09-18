@@ -7,17 +7,26 @@ to a new file/module. At this time, ExFactor cannot change the function arity.
 
 ### Example
 ```elixir
-mix exfactor -m MyApp.MyMod -f [my_func: 2] -mm MyApp.MyNewMod -mf :my_new_func
+ mix ex_factor.refactor --module TestModule.Here --function my_func --arity 1 --target NewModule.Test
 ```
 
 ## Roadmap
 
-  - [] Write the module code to rename usages of the refactored function
   - [] Update .exs files too?
   - [] Write tests to ensure we can find modules within and across umbrella apps.
   - [X] Write a mix task to invoke the Refactorer
-  - [] ElixirLS integration for VSCode?
   - [] Add configuration hooks?
+  - [] find dead functions
+  - [] find module attrs and also move them?
+  - [] find types referenced in the moved specs
+  - [] find private functions references in refactored fn bodies.
+  - [] update test file refs by CLI option
+  - [] format changes
+  - [] CLI output, list files changed and created.
+  - [] dry-run option
+  - [] ElixirLS integration for VSCode?
+  - [] Write the module code to rename usages of the refactored function
+
 
 ## Installation
 
@@ -36,3 +45,4 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_factor](https://hexdocs.pm/ex_factor).
 
+REFACTORY, just in case.

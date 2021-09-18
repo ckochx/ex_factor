@@ -4,15 +4,18 @@ defmodule ExFactor.MixProject do
   def project do
     [
       app: :ex_factor,
-      version: "0.1.0",
-      elixir: "~> 1.11",
+      name: "ExFactor",
+      version: "0.2.0",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: description(),
+      package: package(),
+      source_url: "https://github.com/ckochx/ex_factor"
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
@@ -24,11 +27,24 @@ defmodule ExFactor.MixProject do
   # defp elixirc_paths(_), do: ["lib"]
   defp elixirc_paths(_), do: ["lib", "test"]
 
-  # Run "mix help deps" to learn about dependencies.
+  defp description do
+    "ExFactor is a refactoring helper."
+  end
+
   defp deps do
+    []
+  end
+
+  # Run "mix help deps" to learn about dependencies.
+  defp package() do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      name: "ExFactor",
+      # These are the default files included in the package
+      # files: ~w(lib priv .formatter.exs mix.exs README* readme* LICENSE*
+      #           license* CHANGELOG* changelog* src),
+      licenses: ["CC-BY-NC-ND-4.0"],
+      links: %{"GitHub" => "https://github.com/ckochx/ex_factor"}
+
     ]
   end
 end

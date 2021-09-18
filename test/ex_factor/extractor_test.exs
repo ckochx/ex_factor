@@ -4,9 +4,11 @@ defmodule ExFactor.ExtractorTest do
 
   setup_all do
     File.mkdir_p("test/tmp")
+    File.mkdir_p("lib/ex_factor/tmp")
 
     on_exit(fn ->
       File.rm_rf("test/tmp")
+      File.rm_rf("lib/ex_factor/tmp")
     end)
   end
 
@@ -98,11 +100,11 @@ defmodule ExFactor.ExtractorTest do
     end
 
     test "write a new file with the function, infer some defaults" do
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
 
       content = """
-      defmodule ExFactor.SourceModule do
+      defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
         def pub1(arg1) do
           :ok
@@ -110,31 +112,31 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/source_module.ex", content)
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
 
       opts = [
-        target_module: ExFactor.TargetModule,
-        source_module: ExFactor.SourceModule,
+        target_module: ExFactor.Tmp.TargetModule,
+        source_module: ExFactor.Tmp.SourceModule,
         source_function: :pub1,
         arity: 1
       ]
 
       Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/target_module.ex")
+      file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(pub1(arg1))"
-      assert file =~ "defmodule(ExFactor.TargetModule) do"
+      assert file =~ "defmodule(ExFactor.Tmp.TargetModule) do"
 
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write the function into an existing module" do
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
 
       content = """
-      defmodule ExFactor.SourceModule do
+      defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
         def refactor1(arg1) do
           :ok
@@ -142,10 +144,10 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("test/tmp/source_module.ex", content)
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
 
       content = """
-      defmodule ExFactor.TargetModule do
+      defmodule ExFactor.Tmp.TargetModule do
         @somedoc "This is somedoc TargetModule"
         # this is a comment, it will get elided
         def pub_exists(arg_exists) do
@@ -154,32 +156,32 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/target_module.ex", content)
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.TargetModule,
-        source_module: ExFactor.SourceModule,
+        target_module: ExFactor.Tmp.TargetModule,
+        source_module: ExFactor.Tmp.SourceModule,
         source_function: :refactor1,
         arity: 1
       ]
 
       Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/target_module.ex")
+      file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def pub_exists(arg_exists) do"
-      assert file =~ "defmodule ExFactor.TargetModule do"
+      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
 
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write multiple functions, into an existing module" do
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
 
       content = """
-      defmodule ExFactor.SourceModule do
+      defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
         def refactor1(arg1) do
           :ok
@@ -187,10 +189,10 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/source_module.ex", content)
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
 
       content = """
-      defmodule ExFactor.TargetModule do
+      defmodule ExFactor.Tmp.TargetModule do
         @somedoc "This is somedoc TargetModule"
         # this is a comment, it will get elided
         def pub_exists(arg_exists) do
@@ -202,33 +204,33 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/target_module.ex", content)
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.TargetModule,
-        source_module: ExFactor.SourceModule,
+        target_module: ExFactor.Tmp.TargetModule,
+        source_module: ExFactor.Tmp.SourceModule,
         source_function: :refactor1,
         arity: 1
       ]
 
       Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/target_module.ex")
+      file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def pub_exists(arg_exists) do"
       assert file =~ "def pub_exists(:error) do"
-      assert file =~ "defmodule ExFactor.TargetModule do"
+      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
 
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write multiple functions and their docs, into an existing module" do
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
 
       content = """
-      defmodule ExFactor.SourceModule do
+      defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
         @doc "this is some documentation for refactor1/1"
         def refactor1(arg1) do
@@ -240,10 +242,10 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/source_module.ex", content)
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
 
       content = """
-      defmodule ExFactor.TargetModule do
+      defmodule ExFactor.Tmp.TargetModule do
         @moduledoc false
         @somedoc "This is somedoc TargetModule"
         @doc "some docs"
@@ -256,25 +258,24 @@ defmodule ExFactor.ExtractorTest do
       end
       """
 
-      File.write("lib/ex_factor/target_module.ex", content)
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.TargetModule,
-        source_module: ExFactor.SourceModule,
+        target_module: ExFactor.Tmp.TargetModule,
+        source_module: ExFactor.Tmp.SourceModule,
         source_function: :refactor1,
         arity: 1
       ]
 
       Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/target_module.ex")
-      |> IO.inspect(label: "")
+      file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def(refactor1([])) do"
       assert file =~ " @doc \"some docs\""
 
-      File.rm("lib/ex_factor/source_module.ex")
-      File.rm("lib/ex_factor/target_module.ex")
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
   end
 end
