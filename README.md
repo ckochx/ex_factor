@@ -4,17 +4,21 @@ ExFactor is a refactoring helper. Given a module, function name, and arity, it w
 that function, change the callers to a new module and/or function name, and move the function from the original location
 to a new file/module. At this time, ExFactor cannot change the function arity.
 
+## BETA Warning
+
+ExFactor is still in active development and the API can and will change frequently!
+
+Use at your peril, _for now._
 
 ### Example
 ```elixir
  mix ex_factor.refactor --module TestModule.Here --function my_func --arity 1 --target NewModule.Test
 ```
 
-## Roadmap
+## Roadmap TODO
 
   - [] Update .exs files too?
   - [] Write tests to ensure we can find modules within and across umbrella apps.
-  - [X] Write a mix task to invoke the Refactorer
   - [] Add configuration hooks?
   - [] find dead functions
   - [] find module attrs and also move them?
@@ -23,11 +27,13 @@ to a new file/module. At this time, ExFactor cannot change the function arity.
   - [] update test file refs by CLI option
   - [] format changes
   - [] CLI output, list files changed and created.
-  - [X] dry-run option
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
   - [] guthub actions, run test suite
 
+## Roadmap TODONE
+  - [X] Write a mix task to invoke the Refactorer
+  - [X] dry-run option
 
 ## Installation
 
