@@ -42,7 +42,7 @@ defmodule ExFactor.RemoverTest do
       File.rm("test/support/source_module.ex")
     end
 
-    test "it rewrites the source file and removes code blocks" do
+    test "it rewrites the source file and removes code blocks when function is a string" do
       module = """
       defmodule ExFactorSampleModule do
         @somedoc "This is somedoc"
@@ -73,7 +73,7 @@ defmodule ExFactor.RemoverTest do
       opts = [
         source_module: ExFactorSampleModule,
         source_path: "test/tmp/source_module.ex",
-        source_function: :pub1,
+        source_function: "pub1",
         arity: 1
       ]
 

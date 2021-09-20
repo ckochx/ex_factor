@@ -9,8 +9,11 @@ defmodule ExFactor.Remover do
   Remove the indicated function and its spec from it's original file.
   """
   def remove(opts) do
-    source_function = Keyword.fetch!(opts, :source_function)
+    source_function = opts
+    |> Keyword.fetch!(:source_function)
+    |> function_name()
     source_module = Keyword.get(opts, :source_module)
+
     arity = Keyword.fetch!(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
     dry_run = Keyword.get(opts, :dry_run, false)
@@ -66,4 +69,9 @@ defmodule ExFactor.Remover do
   end
 
   defp path(module), do: ExFactor.path(module)
+
+  defp function_name(name) when is_binary(name) do
+    String.to_atom(name)
+  end
+  defp function_name(name), do: name
 end
