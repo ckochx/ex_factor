@@ -32,7 +32,7 @@ defmodule ExFactor.Remover do
       |> Enum.reduce(acc, fn idx, acc ->
         List.delete_at(acc, idx - 1)
       end)
-      |> List.insert_at(function.start_line, comment(source_function, arity, function.defn))
+      |> List.insert_at(function.start_line - 1, comment(source_function, arity, function.defn))
     end)
     |> Enum.join("\n")
     |> then(fn str -> write_file(source_path, str, source_module, dry_run) end)
@@ -49,7 +49,7 @@ defmodule ExFactor.Remover do
     #
     # Function: #{name}/#{arity} removed by ExFactor
     # ExFactor only removes the function itself
-    # Other artifacts, including docs and module-level comments
+    # Other artifacts, including docs, test references, and module-level comments
     # may remain for you to remove manually.
     #
     """

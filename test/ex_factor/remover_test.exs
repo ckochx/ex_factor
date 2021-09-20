@@ -42,6 +42,38 @@ defmodule ExFactor.RemoverTest do
       File.rm("test/support/source_module.ex")
     end
 
+    test "remove the function leave a comment in place" do
+      content = """
+      defmodule ExFactorSampleModule do
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        def pub1(arg1) do
+          :ok
+        end
+      end
+
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+      source_path = "test/tmp/source_module.ex"
+
+      opts = [
+        source_module: ExFactorSampleModule,
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      Remover.remove(opts)
+
+      file = File.read!(source_path)
+      assert file =~ "defmodule ExFactorSampleModule do"
+      assert file =~ "_docp = \"here's an arbitrary module underscore"
+      assert file =~ "# Function: pub1/1 removed by ExFactor"
+      refute file =~ "def pub1(arg1) do"
+      File.rm("test/support/source_module.ex")
+    end
+
     test "it rewrites the source file and removes code blocks when function is a string" do
       module = """
       defmodule ExFactorSampleModule do
