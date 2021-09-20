@@ -56,6 +56,31 @@ defmodule ExFactor.NeighborsTest do
              ] = Neighbors.walk(block, :pub1)
     end
 
+    test "it finds the target when the last function and function is a string" do
+      module =
+        """
+        defmodule ExFactorSampleModule do
+          def pub1(arg1) do
+            :ok
+          end
+          _docp = "arbitrary module-level elem"
+          defp priv1(arg1) do
+            :ok
+          end
+          def pub2(arg2) do
+            :ok
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+
+      {_ast, block} = Parser.block_contents(module)
+
+      assert [
+               {:def, _, [{:pub2, _, [{:arg2, _, nil}]}, _]}
+             ] = Neighbors.walk(block, "pub2")
+    end
+
     test "it should handle ignore the aliases" do
       module =
         """

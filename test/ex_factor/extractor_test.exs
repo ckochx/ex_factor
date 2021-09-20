@@ -25,6 +25,9 @@ defmodule ExFactor.ExtractorTest do
       end
     end
 
+    test "noop when no matching fns found in source" do
+    end
+
     test "write a new file with the function" do
       content = """
       defmodule ExFactorSampleModule do
