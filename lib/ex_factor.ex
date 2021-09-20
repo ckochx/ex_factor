@@ -9,6 +9,7 @@ defmodule ExFactor do
   new module's name.
   """
 
+  alias ExFactor.Changer
   alias ExFactor.Extractor
   alias ExFactor.Remover
 
@@ -26,6 +27,8 @@ defmodule ExFactor do
 
     emplace = Extractor.emplace(opts)
     remove = Remover.remove(opts)
+    _changes = Changer.change(opts)
+    |> IO.inspect(label: "")
     {emplace, remove}
   end
 
