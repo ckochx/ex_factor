@@ -27,9 +27,9 @@ defmodule ExFactor do
 
     emplace = Extractor.emplace(opts)
     remove = Remover.remove(opts)
-    _changes = Changer.change(opts)
-    |> IO.inspect(label: "")
-    {emplace, remove}
+    changes = Changer.change(opts)
+    {emplace, remove, changes}
+    |> IO.inspect(label: "refactor all changes")
   end
 
   def path(module) do

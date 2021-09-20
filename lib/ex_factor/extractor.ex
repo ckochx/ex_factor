@@ -78,5 +78,13 @@ defmodule ExFactor.Extractor do
 
   defp write_file(target_path, contents, _module, _dry_run) do
     File.write(target_path, contents, [:write])
+  defp write_file(target_path, contents, module, _dry_run) do
+    _ = File.write(target_path, contents, [:write])
+    %{
+      module: module,
+      path: target_path,
+      message: "changes to make",
+      file_contents: contents
+    }
   end
 end
