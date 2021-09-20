@@ -55,9 +55,12 @@ defmodule ExFactor.ChangerTest do
       assert caller =~ "alias ExFactor.Tmp.SourceMod.Other"
       refute caller =~ "alias ExFactor.Tmp.TargetModule.Other"
       assert caller =~ "TargetModule.refactor1(arg_a)"
+      # asser the function uses the alias
+      refute caller =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
     end
 
     # update the annoying alias style: alias Foo.{Bar, Baz, Biz}
+    # find and update when the module is used but not aliased
 
     test "only add alias entry if it's missing" do
       content = """

@@ -46,14 +46,17 @@ defmodule ExFactor.Changer do
 
     Enum.reduce(list, {:unchanged, []}, fn elem, {state, acc} ->
       cond do
+        # match full module name
         String.match?(elem, ~r/#{source_string}\.#{source_function}/) ->
-          elem = String.replace(elem, source_module, target_module)
+          elem = String.replace(elem, source_module, target_alias)
           {:changed, [elem | acc]}
 
+        # match aliased module name
         String.match?(elem, ~r/#{source_alias}\.#{source_function}/) ->
           elem = String.replace(elem, source_alias, target_alias)
           {:changed, [elem | acc]}
 
+        # match module name aliased :as
         String.match?(elem, ~r/#{source_alias_alt}\.#{source_function}/) ->
           elem = String.replace(elem, source_alias_alt, target_alias)
           {:changed, [elem | acc]}
@@ -135,24 +138,34 @@ defmodule ExFactor.Changer do
     target_string = Util.module_to_string(target_module)
 
     if Enum.find(contents_list, fn el -> match_alias?(el, target_string) end) do
+      # IO.puts "#{target_string} FOUND THE ALIAS"
       {state, contents_list}
     else
       contents_list
-      |> Enum.reduce([], fn elem, acc ->
-        if match_alias?(elem, source_string) do
-        # if String.match?(elem, ~r/alias #{source_string}(\s|$|\,)/) do
-          new_alias = String.replace(elem, source_string, target_string)
-          [new_alias | [elem | acc]]
-        else
-          [elem | acc]
+      |> Enum.reduce({:none, []}, fn elem, {prev, acc} ->
+        cond do
+          match_alias?(elem, source_string) ->
+            new_alias = String.replace(elem, source_string, target_string)
+            {:alias, [new_alias | [elem | acc]]}
+          prev == :alias and not match_alias?(elem, "") ->
+            {:none, [ "alias #{target_string}" | [elem | acc]]}
+          match_alias?(elem, "") ->
+            {:alias, [elem | acc]}
+          true ->
+            {:none, [elem | acc]}
         end
       end)
+      |> elem(1)
       |> Enum.reverse()
       |> then(fn list -> {state, list} end)
     end
   end
 
+  defp match_alias?(string, "") do
+    String.match?(string, ~r/(^|\s)alias\s/)
+  end
+
   defp match_alias?(string, module_string) do
-    String.match?(string, ~r/alias #{module_string}(\s|$|\,)/)
+    String.match?(string, ~r/(^|\s)alias #{module_string}(\s|$|\,)/)
   end
 end
