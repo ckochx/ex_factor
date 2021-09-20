@@ -13,8 +13,15 @@ defmodule ExFactor.Changer do
   def change(opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     Mix.Tasks.Compile.Elixir.run([])
-    callers = Callers.callers(source_module)
 
+    source_module
+    |> Callers.callers()
+    |> update_callers(opts)
+  end
+
+  defp update_callers([], _), do: []
+
+  defp update_callers(callers, opts) do
     Enum.map(callers, fn caller ->
       File.read!(caller.filepath)
       |> String.split("\n")

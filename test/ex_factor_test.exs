@@ -16,13 +16,12 @@ defmodule ExFactorTest do
 
       content = """
       defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
         @doc "this is some documentation for refactor1/1"
-        def refactor1(arg1) do
-          :ok
-        end
         def refactor1([]) do
           :empty
+        end
+        def refactor1(arg1) do
+          arg1
         end
       end
       """
@@ -31,13 +30,12 @@ defmodule ExFactorTest do
 
       content = """
       defmodule ExFactor.Tmp.TargetModule do
-        @somedoc "This is somedoc TargetModule"
         @doc "some docs"
-        def pub_exists(arg_exists) do
-          :ok
-        end
         def pub_exists(:error) do
           :error
+        end
+        def pub_exists(arg_exists) do
+          arg_exists
         end
       end
       """
@@ -45,8 +43,8 @@ defmodule ExFactorTest do
       File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :refactor1,
         arity: 1
       ]
@@ -72,13 +70,12 @@ defmodule ExFactorTest do
 
       content = """
       defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
         @doc "this is some documentation for refactor1/1"
-        def refactor1(arg1) do
-          :ok
-        end
         def refactor1([]) do
           :empty
+        end
+        def refactor1(arg1) do
+          arg1
         end
       end
       """
@@ -87,13 +84,14 @@ defmodule ExFactorTest do
 
       content = """
       defmodule ExFactor.Tmp.TargetModule do
-        @somedoc "This is somedoc TargetModule"
+        @someattr "This is somedoc TargetModule"
         @doc "some docs"
-        def pub_exists(arg_exists) do
-          :ok
-        end
         def pub_exists(:error) do
           :error
+        end
+        def pub_exists(arg_exists) do
+          _ = @someattr
+          arg_exists
         end
       end
       """
@@ -101,14 +99,14 @@ defmodule ExFactorTest do
       File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :refactor1,
         arity: 1,
         dry_run: true
       ]
 
-      {extract_contents, remove_contents} = ExFactor.refactor(opts)
+      {_extract_contents, _remove_contents} = ExFactor.refactor(opts)
 
       # assert that the original files are unchanged
       file = File.read!("lib/ex_factor/tmp/target_module.ex")

@@ -18,6 +18,7 @@ defmodule ExFactor.Callers do
     |> mangle_list()
   end
 
+  defp mangle_list([""]), do: []
   defp mangle_list(["Compiling" <> _ | tail]), do: mangle_list(tail)
 
   defp mangle_list(list) do

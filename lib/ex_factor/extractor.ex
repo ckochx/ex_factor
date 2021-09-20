@@ -22,6 +22,7 @@ defmodule ExFactor.Extractor do
   """
 
   def emplace(opts) do
+    # modules as strings
     source_module = Keyword.fetch!(opts, :source_module)
     target_module = Keyword.fetch!(opts, :target_module)
     source_function = Keyword.fetch!(opts, :source_function)
@@ -36,16 +37,12 @@ defmodule ExFactor.Extractor do
       |> Neighbors.walk(source_function, arity)
       |> Enum.map(&Macro.to_string(&1))
 
-    # |> IO.inspect(label: "to string")
-
     string_fns = Enum.join(to_extract, "\n")
 
     case File.exists?(target_path) do
       true ->
         {ast, list} = Parser.read_file(target_path)
         {:defmodule, [do: [line: _begin_line], end: [line: end_line], line: _], _} = ast
-        # string_fns = Macro.to_string(to_extract)
-        # string_fns = Enum.join(to_extract, "\n")
 
         list
         |> List.insert_at(end_line - 1, refactor_message())
@@ -54,8 +51,9 @@ defmodule ExFactor.Extractor do
         |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
 
       _ ->
+        target_mod = Module.concat [target_module]
         quote generated: true do
-          defmodule unquote(target_module) do
+          defmodule unquote(target_mod) do
             @moduledoc false
             unquote(Macro.unescape_string(string_fns))
           end

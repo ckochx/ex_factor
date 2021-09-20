@@ -39,8 +39,8 @@ defmodule ExFactor.ChangerTest do
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceMod,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
         source_function: :refactor1,
         arity: 1
       ]
@@ -82,8 +82,8 @@ defmodule ExFactor.ChangerTest do
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceMod,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
         source_function: :refactor1,
         arity: 1
       ]
@@ -132,8 +132,8 @@ defmodule ExFactor.ChangerTest do
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceMod,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
         source_function: :refactor1,
         arity: 1
       ]
@@ -175,8 +175,8 @@ defmodule ExFactor.ChangerTest do
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceMod,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
         source_function: :refactor1,
         arity: 1
       ]
@@ -217,8 +217,8 @@ defmodule ExFactor.ChangerTest do
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceMod,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
         source_function: :refactor1,
         dry_run: true,
         arity: 1

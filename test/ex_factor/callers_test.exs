@@ -10,5 +10,9 @@ defmodule ExFactor.CallersTest do
       assert one.filepath == "lib/ex_factor/callers.ex"
       assert five.filepath == "test/support/support.ex"
     end
+
+    test "when no callers" do
+      assert [] = Callers.callers(ExFactor.NotAModule)
+    end
   end
 end
