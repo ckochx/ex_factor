@@ -30,9 +30,11 @@ defmodule ExFactor.ChangerTest do
       content = """
       defmodule ExFactor.Tmp.CallerModule do
         alias ExFactor.Tmp.SourceMod
+        alias ExFactor.Tmp.SourceMod.Other
         def pub1(arg_a) do
           SourceMod.refactor1(arg_a)
         end
+        def pub2(), do: Other
       end
       """
 
@@ -49,8 +51,13 @@ defmodule ExFactor.ChangerTest do
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
       assert caller =~ "alias ExFactor.Tmp.TargetModule"
+      # ensure we don't match dumbly
+      assert caller =~ "alias ExFactor.Tmp.SourceMod.Other"
+      refute caller =~ "alias ExFactor.Tmp.TargetModule.Other"
       assert caller =~ "TargetModule.refactor1(arg_a)"
     end
+
+    # update the annoying alias style: alias Foo.{Bar, Baz, Biz}
 
     test "only add alias entry if it's missing" do
       content = """

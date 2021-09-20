@@ -67,7 +67,7 @@ defmodule ExFactor.Changer do
   end
 
   defp find_alias_as(list, module) do
-    aalias = Enum.find(list, "", fn el -> el =~ "alias #{Util.module_to_string(module)}" end)
+    aalias = Enum.find(list, "", fn el -> match_alias?(el, module) end)
 
     if String.match?(aalias, ~r/, as: /) do
       aalias
@@ -134,12 +134,13 @@ defmodule ExFactor.Changer do
     target_module = Keyword.fetch!(opts, :target_module)
     target_string = Util.module_to_string(target_module)
 
-    if Enum.find(contents_list, fn el -> el =~ "alias #{target_string}" end) do
+    if Enum.find(contents_list, fn el -> match_alias?(el, target_string) end) do
       {state, contents_list}
     else
       contents_list
       |> Enum.reduce([], fn elem, acc ->
-        if elem =~ "alias #{source_string}" do
+        if match_alias?(elem, source_string) do
+        # if String.match?(elem, ~r/alias #{source_string}(\s|$|\,)/) do
           new_alias = String.replace(elem, source_string, target_string)
           [new_alias | [elem | acc]]
         else
@@ -149,5 +150,9 @@ defmodule ExFactor.Changer do
       |> Enum.reverse()
       |> then(fn list -> {state, list} end)
     end
+  end
+
+  defp match_alias?(string, module_string) do
+    String.match?(string, ~r/alias #{module_string}(\s|$|\,)/)
   end
 end
