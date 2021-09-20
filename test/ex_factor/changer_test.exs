@@ -95,9 +95,11 @@ defmodule ExFactor.ChangerTest do
       caller_list = String.split(caller, "\n")
       assert caller =~ "alias ExFactor.Tmp.TargetModule"
       assert caller =~ "TargetModule.refactor1(arg_a)"
-      assert 1 == Enum.count(caller_list, fn el ->
-        el =~ "alias ExFactor.Tmp.TargetModule"
-      end)
+
+      assert 1 ==
+               Enum.count(caller_list, fn el ->
+                 el =~ "alias ExFactor.Tmp.TargetModule"
+               end)
     end
 
     test "handle alias exists with :as" do
@@ -143,9 +145,11 @@ defmodule ExFactor.ChangerTest do
       caller_list = String.split(caller, "\n")
       assert caller =~ "alias ExFactor.Tmp.TargetModule"
       assert caller =~ "TM.refactor1(arg_a)"
-      assert 1 == Enum.count(caller_list, fn el ->
-        el =~ "alias ExFactor.Tmp.TargetModule"
-      end)
+
+      assert 1 ==
+               Enum.count(caller_list, fn el ->
+                 el =~ "alias ExFactor.Tmp.TargetModule"
+               end)
     end
 
     test "it finds all the callers of a module by an alias, function, and arity, and updates the calls to the new module " do

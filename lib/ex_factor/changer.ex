@@ -32,7 +32,7 @@ defmodule ExFactor.Changer do
 
     # modified values
     source_string = Util.module_to_string(source_module)
-    source_modules = Module.split(source_module)
+    source_modules = String.split(source_module, ".")
     source_alias = Enum.at(source_modules, -1)
     target_alias = preferred_alias(list, target_module)
     source_alias_alt = find_alias_as(list, source_module)
@@ -42,13 +42,17 @@ defmodule ExFactor.Changer do
         String.match?(elem, ~r/#{source_string}\.#{source_function}/) ->
           elem = String.replace(elem, source_module, target_module)
           {:changed, [elem | acc]}
+
         String.match?(elem, ~r/#{source_alias}\.#{source_function}/) ->
           elem = String.replace(elem, source_alias, target_alias)
           {:changed, [elem | acc]}
+
         String.match?(elem, ~r/#{source_alias_alt}\.#{source_function}/) ->
           elem = String.replace(elem, source_alias_alt, target_alias)
           {:changed, [elem | acc]}
-        true -> {state, [elem | acc]}
+
+        true ->
+          {state, [elem | acc]}
       end
     end)
     |> maybe_add_alias(opts)
@@ -57,6 +61,7 @@ defmodule ExFactor.Changer do
 
   defp find_alias_as(list, module) do
     aalias = Enum.find(list, "", fn el -> el =~ "alias #{Util.module_to_string(module)}" end)
+
     if String.match?(aalias, ~r/, as: /) do
       aalias
       |> String.split("as:", trim: true)
@@ -67,7 +72,7 @@ defmodule ExFactor.Changer do
   end
 
   defp preferred_alias(list, target_module) do
-    target_modules = Module.split(target_module)
+    target_modules = String.split(target_module, ".")
     target_alias = Enum.at(target_modules, -1)
     target_alias_alt = find_alias_as(list, target_module)
 
@@ -99,6 +104,7 @@ defmodule ExFactor.Changer do
   defp write_file({state, contents_list}, _, target_path, _dry_run) do
     contents = list_to_string(contents_list)
     File.write(target_path, contents, [:write])
+
     %{
       path: target_path,
       state: [state],
@@ -114,6 +120,7 @@ defmodule ExFactor.Changer do
   end
 
   defp maybe_add_alias({:unchanged, contents_list}, _), do: {:unchanged, contents_list}
+
   defp maybe_add_alias({state, contents_list}, opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     source_string = Util.module_to_string(source_module)
@@ -125,7 +132,7 @@ defmodule ExFactor.Changer do
     else
       contents_list
       |> Enum.reduce([], fn elem, acc ->
-        if (elem =~ "alias #{source_string}") do
+        if elem =~ "alias #{source_string}" do
           new_alias = String.replace(elem, source_string, target_string)
           [new_alias | [elem | acc]]
         else

@@ -54,16 +54,14 @@ defmodule ExFactor.Extractor do
         |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
 
       _ ->
-        contents =
-          quote generated: true do
-            defmodule unquote(target_module) do
-              @moduledoc false
-              unquote(Macro.unescape_string(string_fns))
-            end
+        quote generated: true do
+          defmodule unquote(target_module) do
+            @moduledoc false
+            unquote(Macro.unescape_string(string_fns))
           end
-          |> Macro.to_string()
-
-        write_file(target_path, contents, source_module, dry_run)
+        end
+        |> Macro.to_string()
+        |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
     end
   end
 

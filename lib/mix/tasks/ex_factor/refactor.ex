@@ -23,6 +23,7 @@ defmodule Mix.Tasks.ExFactor.Refactor do
   Optional command line args: --source_path, --target_path
     - `:target_path` Specify an alternate (non-standard) path for the source file.
     - `:source_path` Specify an alternate (non-standard) path for the destination file.
+    - `:dryrun` Don't write any updates, only return the built results.
 
   """
 
@@ -33,7 +34,7 @@ defmodule Mix.Tasks.ExFactor.Refactor do
       OptionParser.parse(argv,
         strict: [
           arity: :integer,
-          dry_run: :boolean,
+          dryrun: :boolean,
           function: :string,
           key: :string,
           module: :string,
@@ -43,10 +44,6 @@ defmodule Mix.Tasks.ExFactor.Refactor do
         ]
       )
 
-    # parsed_opts
-    # |> IO.inspect(label: "PARSED ARGS")
-
-    # Mix.Task.run("app.start")
     parsed_opts
     |> options()
     |> ExFactor.refactor()
@@ -57,5 +54,6 @@ defmodule Mix.Tasks.ExFactor.Refactor do
     |> Keyword.put(:source_function, Keyword.fetch!(opts, :function))
     |> Keyword.put(:source_module, Keyword.fetch!(opts, :module))
     |> Keyword.put(:target_module, Keyword.fetch!(opts, :target))
+    |> Keyword.put(:dry_run, Keyword.get(opts, :dryrun, false))
   end
 end
