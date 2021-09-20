@@ -15,7 +15,7 @@ defmodule ExFactor.ExtractorTest do
   describe "emplace/1" do
     test "requires some options" do
       opts = [
-        source_module: ExFactorSampleModule,
+        source_module: "ExFactorSampleModule",
         source_function: :pub1,
         arity: 1
       ]
@@ -45,8 +45,8 @@ defmodule ExFactor.ExtractorTest do
 
       opts = [
         target_path: target_path,
-        target_module: ExFactor.NewMod,
-        source_module: ExFactorSampleModule,
+        target_module: "ExFactor.NewMod",
+        source_module: "ExFactorSampleModule",
         source_path: "test/tmp/source_module.ex",
         source_function: :pub1,
         arity: 1
@@ -88,8 +88,8 @@ defmodule ExFactor.ExtractorTest do
 
       opts = [
         target_path: target_path,
-        target_module: ExFactor.NewMod,
-        source_module: ExFactorSampleModule,
+        target_module: "ExFactor.NewMod",
+        source_module: "ExFactorSampleModule",
         source_path: "test/tmp/source_module.ex",
         source_function: :pub1,
         arity: 1,
@@ -100,7 +100,7 @@ defmodule ExFactor.ExtractorTest do
       assert {:error, :enoent} = File.read(target_path)
       assert output.file_contents
       assert output.message == "--dry_run changes to make"
-      assert output.module == ExFactorSampleModule
+      assert output.module == "ExFactor.NewMod"
     end
 
     test "write a new file with the function, infer some defaults" do
@@ -119,8 +119,8 @@ defmodule ExFactor.ExtractorTest do
       File.write("lib/ex_factor/tmp/source_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :pub1,
         arity: 1
       ]
@@ -163,8 +163,8 @@ defmodule ExFactor.ExtractorTest do
       File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :refactor1,
         arity: 1
       ]
@@ -211,8 +211,8 @@ defmodule ExFactor.ExtractorTest do
       File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :refactor1,
         arity: 1
       ]
@@ -265,8 +265,8 @@ defmodule ExFactor.ExtractorTest do
       File.write("lib/ex_factor/tmp/target_module.ex", content)
 
       opts = [
-        target_module: ExFactor.Tmp.TargetModule,
-        source_module: ExFactor.Tmp.SourceModule,
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
         source_function: :refactor1,
         arity: 1
       ]
