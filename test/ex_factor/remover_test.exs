@@ -155,9 +155,7 @@ defmodule ExFactor.RemoverTest do
         arity: 1
       ]
 
-      changes =
-        Remover.remove(opts)
-        |> IO.inspect(label: "")
+      changes = Remover.remove(opts)
 
       unchanged_file = File.read!("test/tmp/source_module.ex")
       assert unchanged_file =~ "def pub1(arg1) do"
@@ -170,6 +168,12 @@ defmodule ExFactor.RemoverTest do
       assert changes.path == "test/tmp/source_module.ex"
       assert changes.module == ExFactorSampleModule
       assert changes.message == "--dry_run changes to make"
+    end
+
+    test "handles no functions found to remove, messages correctly" do
+    end
+
+    test "handles no modules found to remove, messages correctly" do
     end
   end
 end

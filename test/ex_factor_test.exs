@@ -49,7 +49,7 @@ defmodule ExFactorTest do
         arity: 1
       ]
 
-      {_, _, _} = _results = ExFactor.refactor(opts)
+      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(refactor1(arg1)) do"
@@ -58,10 +58,8 @@ defmodule ExFactorTest do
       assert file =~ "def pub_exists(arg_exists) do"
 
       file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      # |> IO.inspect(label: "")
       refute file =~ "def refactor1(arg1) do"
       refute file =~ "def refactor1([]) do"
-      # assert results == {:ok, :ok}
     end
 
     test "it returns the results of the dry_run changes" do
@@ -106,7 +104,7 @@ defmodule ExFactorTest do
         dry_run: true
       ]
 
-      {_extract_results, _remove_results, _change_results} = ExFactor.refactor(opts)
+      %{additions: _, changes: _, removals: _} = ExFactor.refactor(opts)
 
       # assert that the original files are unchanged
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
@@ -116,9 +114,6 @@ defmodule ExFactorTest do
       file = File.read!("lib/ex_factor/tmp/source_module.ex")
       assert file =~ "def refactor1(arg1) do"
       assert file =~ "def refactor1([]) do"
-
-      # extract_contents |> IO.inspect(label: "")
-      # remove_contents |> IO.inspect(label: "")
     end
   end
 end

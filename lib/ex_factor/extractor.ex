@@ -71,6 +71,7 @@ defmodule ExFactor.Extractor do
     %{
       module: module,
       path: target_path,
+      state: [:dry_run],
       message: "--dry_run changes to make",
       file_contents: contents
     }
@@ -81,7 +82,8 @@ defmodule ExFactor.Extractor do
     %{
       module: module,
       path: target_path,
-      message: "changes to make",
+      state: [:additions_made],
+      message: "changes made",
       file_contents: contents
     }
   end

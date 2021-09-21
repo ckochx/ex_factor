@@ -9,8 +9,12 @@ defmodule ExFactor do
   new module's name.
   """
 
+  _docp = "results struct"
+  defstruct [:module, :path, :message, :file_contents, :state]
+
   alias ExFactor.Changer
   alias ExFactor.Extractor
+  alias ExFactor.Formatter
   alias ExFactor.Remover
 
   @doc """
@@ -28,12 +32,34 @@ defmodule ExFactor do
     emplace = Extractor.emplace(opts)
     changes = Changer.change(opts)
     # remove should be last (before format)
-    remove = Remover.remove(opts)
-    {emplace, remove, changes}
-    |> IO.inspect(label: "refactor all changes")
+    removals = Remover.remove(opts)
+
+    format(%{additions: emplace, changes: changes, removals: removals})
   end
 
   def path(module) do
     Path.join(["lib", Macro.underscore(module) <> ".ex"])
+  end
+
+  defp format(%{path: nil} = struct), do: struct
+
+  defp format(%{additions: adds, changes: changes, removals: removals}) do
+    %{
+      additions: format(adds),
+      changes: format(changes),
+      removals: format(removals)
+    }
+  end
+
+  defp format(list) when is_list(list) do
+    Enum.map(list, fn elem ->
+      format(elem)
+      Map.get_and_update(elem, :state, fn val -> {val, [:formatted | val]} end)
+    end)
+  end
+
+  defp format(struct) do
+    Formatter.format([struct.path])
+    Map.get_and_update(struct, :state, fn val -> {val, [:formatted | val]} end)
   end
 end

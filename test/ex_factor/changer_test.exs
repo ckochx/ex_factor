@@ -40,6 +40,18 @@ defmodule ExFactor.ChangerTest do
 
       File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
+      content = """
+      defmodule ExFactor.Tmp.CallerTwoModule do
+        alias ExFactor.Tmp.SourceMod
+        def pub1(arg_a) do
+          SourceMod.refactor1(arg_a)
+        end
+        def pub2(), do: Other
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/caller_two_module.ex", content)
+
       opts = [
         target_module: "ExFactor.Tmp.TargetModule",
         source_module: "ExFactor.Tmp.SourceMod",
@@ -47,7 +59,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-      Changer.change(opts)
+      changes = Changer.change(opts)
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
       assert caller =~ "alias ExFactor.Tmp.TargetModule"
@@ -57,10 +69,17 @@ defmodule ExFactor.ChangerTest do
       assert caller =~ "TargetModule.refactor1(arg_a)"
       # asser the function uses the alias
       refute caller =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
-    end
 
-    # update the annoying alias style: alias Foo.{Bar, Baz, Biz}
-    # find and update when the module is used but not aliased
+      caller_two = File.read!("lib/ex_factor/tmp/caller_two_module.ex")
+      assert caller_two =~ "alias ExFactor.Tmp.TargetModule"
+      # ensure we don't match dumbly
+      assert caller_two =~ "TargetModule.refactor1(arg_a)"
+      # asser the function uses the alias
+      refute caller_two =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
+
+      assert Enum.find(changes, &(&1.path == "lib/ex_factor/tmp/caller_module.ex"))
+      assert Enum.find(changes, &(&1.path == "lib/ex_factor/tmp/caller_two_module.ex"))
+    end
 
     test "only add alias entry if it's missing" do
       content = """
@@ -204,6 +223,15 @@ defmodule ExFactor.ChangerTest do
     test "changes multiple functions" do
     end
 
+    test "handles no functions found to change, messages correctly" do
+    end
+
+    test "handles no modules found to change, messages correctly" do
+    end
+
+    # update the annoying alias style: alias Foo.{Bar, Baz, Biz}
+    # find and update when the module is used but not aliased
+
     test "takes a dry_run argument and doesn't update the files" do
       content = """
       defmodule ExFactor.Tmp.SourceMod do
@@ -235,7 +263,6 @@ defmodule ExFactor.ChangerTest do
       ]
 
       [change_map] = Changer.change(opts)
-      # |> IO.inspect(label: "")
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
 

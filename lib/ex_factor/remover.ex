@@ -55,16 +55,24 @@ defmodule ExFactor.Remover do
   end
 
   defp write_file(path, contents, source_module, true) do
-    %{
+    %ExFactor{
       module: source_module,
       path: path,
+      state: [:dry_run],
       message: "--dry_run changes to make",
       file_contents: contents
     }
   end
 
-  defp write_file(path, contents, _source_module, _) do
+  defp write_file(path, contents, source_module, _) do
     File.write(path, contents, [:write])
+    %ExFactor{
+      module: source_module,
+      path: path,
+      state: [:removed],
+      message: "changes made",
+      file_contents: contents
+    }
   end
 
   defp path(module), do: ExFactor.path(module)

@@ -19,7 +19,7 @@ defmodule ExFactor.Changer do
     |> update_callers(opts)
   end
 
-  defp update_callers([], _), do: []
+  defp update_callers([], _), do: %ExFactor{}
 
   defp update_callers(callers, opts) do
     Enum.map(callers, fn caller ->
@@ -94,7 +94,7 @@ defmodule ExFactor.Changer do
   end
 
   defp write_file({:unchanged, contents_list}, source_function, target_path, true) do
-    %{
+    %ExFactor{
       path: target_path,
       state: [:unchanged],
       message: "#{source_function} not found, no changes to make",
@@ -103,7 +103,7 @@ defmodule ExFactor.Changer do
   end
 
   defp write_file({state, contents_list}, _, target_path, true) do
-    %{
+    %ExFactor{
       path: target_path,
       state: [:dry_run, state],
       message: "--dry_run changes to make",
@@ -115,7 +115,7 @@ defmodule ExFactor.Changer do
     contents = list_to_string(contents_list)
     File.write(target_path, contents, [:write])
 
-    %{
+    %ExFactor{
       path: target_path,
       state: [state],
       message: "changes made",
