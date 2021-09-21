@@ -26,8 +26,9 @@ defmodule ExFactor do
       |> Keyword.put_new(:source_path, path(source_module))
 
     emplace = Extractor.emplace(opts)
-    remove = Remover.remove(opts)
     changes = Changer.change(opts)
+    # remove should be last (before format)
+    remove = Remover.remove(opts)
     {emplace, remove, changes}
     |> IO.inspect(label: "refactor all changes")
   end

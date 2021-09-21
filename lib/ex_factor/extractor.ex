@@ -76,8 +76,6 @@ defmodule ExFactor.Extractor do
     }
   end
 
-  defp write_file(target_path, contents, _module, _dry_run) do
-    File.write(target_path, contents, [:write])
   defp write_file(target_path, contents, module, _dry_run) do
     _ = File.write(target_path, contents, [:write])
     %{

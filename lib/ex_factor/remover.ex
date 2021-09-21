@@ -2,8 +2,6 @@ defmodule ExFactor.Remover do
   @moduledoc """
   Documentation for `ExFactor.Remover`.
   """
-alias ExFactor.Util
-
   alias ExFactor.Parser
 
   @doc """
@@ -69,7 +67,7 @@ alias ExFactor.Util
     File.write(path, contents, [:write])
   end
 
-  defp path(module), do: Util.path(module)
+  defp path(module), do: ExFactor.path(module)
 
   defp function_name(name) when is_binary(name) do
     String.to_atom(name)
