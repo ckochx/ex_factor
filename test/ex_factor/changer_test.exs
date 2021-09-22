@@ -11,10 +11,12 @@ defmodule ExFactor.ChangerTest do
   end
 
   describe "change/1" do
-    test "it finds all the callers of a module, function, and arity, and updates the calls to the new module " do
+    test "it finds all the callers of a module, function, and arity, and updates the calls to the new module" do
       content = """
       defmodule ExFactor.Tmp.SourceMod do
-        @moduledoc "This is moduedoc"
+        @moduledoc "
+        This is a multiline moduedoc
+        "
         @doc "this is some documentation for refactor1/1"
         def refactor1([]) do
           :empty
@@ -29,12 +31,20 @@ defmodule ExFactor.ChangerTest do
 
       content = """
       defmodule ExFactor.Tmp.CallerModule do
+        @moduledoc "
+        This is a multiline moduedoc.
+        Its in the caller module
+        "
         alias ExFactor.Tmp.SourceMod
         alias ExFactor.Tmp.SourceMod.Other
         def pub1(arg_a) do
           SourceMod.refactor1(arg_a)
         end
         def pub2(), do: Other
+
+        def pub3(arg_a) do
+          SourceMod.refactor1(arg_a)
+        end
       end
       """
 
@@ -66,9 +76,12 @@ defmodule ExFactor.ChangerTest do
       # ensure we don't match dumbly
       assert caller =~ "alias ExFactor.Tmp.SourceMod.Other"
       refute caller =~ "alias ExFactor.Tmp.TargetModule.Other"
+      # assert the alias doesn't get spliced into the moduledoc
+      refute caller =~ "Its in the caller module\nalias ExFactor.Tmp.TargetModule\n  \""
       assert caller =~ "TargetModule.refactor1(arg_a)"
       # asser the function uses the alias
       refute caller =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
+      assert caller =~ "def pub3(arg_a) do\n    TargetModule.refactor1(arg_a)"
 
       caller_two = File.read!("lib/ex_factor/tmp/caller_two_module.ex")
       assert caller_two =~ "alias ExFactor.Tmp.TargetModule"
@@ -172,7 +185,7 @@ defmodule ExFactor.ChangerTest do
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
 
       caller_list = String.split(caller, "\n")
-      assert caller =~ "alias ExFactor.Tmp.TargetModule"
+      assert caller =~ "alias ExFactor.Tmp.TargetModule, as: TM"
       assert caller =~ "TM.refactor1(arg_a)"
 
       assert 1 ==
@@ -180,6 +193,7 @@ defmodule ExFactor.ChangerTest do
                  el =~ "alias ExFactor.Tmp.TargetModule"
                end)
     end
+
 
     test "it finds all the callers of a module by an alias, function, and arity, and updates the calls to the new module " do
       content = """
@@ -217,20 +231,100 @@ defmodule ExFactor.ChangerTest do
       assert caller =~ "TargetModule.refactor1(arg_a)"
     end
 
-    test "matches the arity" do
-    end
-
-    test "changes multiple functions" do
-    end
-
     test "handles no functions found to change, messages correctly" do
+      content = """
+      defmodule ExFactor.Tmp.SourceMod do
+        def refactor1(_arg1, _opt2 \\\\ []) do
+          :ok
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.CallerModule do
+        alias ExFactor.Tmp.SourceMod, as: SM
+        def pub1(_arg_a) do
+          SM
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/caller_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
+        source_function: :refactor1,
+        arity: 1
+      ]
+
+      [change] = Changer.change(opts)
+      assert change.message == "function: refactor1 not found, no changes to make"
+      assert change.state == [:unchanged]
     end
 
     test "handles no modules found to change, messages correctly" do
+      opts = [
+        target_module: "ExFactor.Tmp.TargetMissing",
+        source_module: "ExFactor.Tmp.SourceModMissing",
+        source_function: :refactor1,
+        arity: 1
+      ]
+
+      [change] = Changer.change(opts)
+      assert change.message == "module: ExFactor.Tmp.SourceModMissing not found"
+      assert change.state == [:unchanged]
     end
 
-    # update the annoying alias style: alias Foo.{Bar, Baz, Biz}
-    # find and update when the module is used but not aliased
+    test "updates a mod-fn-arity when the function is not aliased" do
+      content = """
+      defmodule ExFactor.Tmp.SourceMod do
+        @moduledoc "This is moduedoc"
+        @doc "this is some documentation for refactor1/1"
+        def refactor1([]) do
+          :empty
+        end
+        def refactor1(arg1) do
+          {:ok, arg1}
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.CallerModule do
+        def pub1(arg_a) do
+          ExFactor.Tmp.SourceMod.refactor1(arg_a)
+        end
+        def alias2, do: TM
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/caller_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
+        source_function: :refactor1,
+        arity: 1
+      ]
+
+      Changer.change(opts)
+
+      caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
+
+      caller_list = String.split(caller, "\n")
+      assert caller =~ "alias ExFactor.Tmp.TargetModule"
+      assert caller =~ "TargetModule.refactor1(arg_a)"
+
+      assert 1 ==
+               Enum.count(caller_list, fn el ->
+                 el =~ "alias ExFactor.Tmp.TargetModule"
+               end)
+    end
 
     test "takes a dry_run argument and doesn't update the files" do
       content = """
@@ -270,6 +364,13 @@ defmodule ExFactor.ChangerTest do
       refute caller =~ "TargetModule.refactor1(arg_a)"
       assert change_map.state == [:dry_run, :changed]
       assert change_map.message == "--dry_run changes to make"
+    end
+
+    # functions to fill in
+    test "update the alternate alias style: alias Foo.{Bar, Baz, Biz}" do
+    end
+
+    test "matches the arity" do
     end
   end
 end

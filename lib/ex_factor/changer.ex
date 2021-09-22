@@ -19,7 +19,10 @@ defmodule ExFactor.Changer do
     |> update_callers(opts)
   end
 
-  defp update_callers([], _), do: %ExFactor{}
+  defp update_callers([], opts) do
+    source_module = Keyword.fetch!(opts, :source_module)
+    [%ExFactor{state: [:unchanged], message: "module: #{source_module} not found"}]
+  end
 
   defp update_callers(callers, opts) do
     Enum.map(callers, fn caller ->
@@ -93,20 +96,20 @@ defmodule ExFactor.Changer do
     end
   end
 
-  defp write_file({:unchanged, contents_list}, source_function, target_path, true) do
-    %ExFactor{
-      path: target_path,
-      state: [:unchanged],
-      message: "#{source_function} not found, no changes to make",
-      file_contents: list_to_string(contents_list)
-    }
-  end
-
   defp write_file({state, contents_list}, _, target_path, true) do
     %ExFactor{
       path: target_path,
       state: [:dry_run, state],
       message: "--dry_run changes to make",
+      file_contents: list_to_string(contents_list)
+    }
+  end
+
+  defp write_file({:unchanged, contents_list}, source_function, target_path, _dry_run) do
+    %ExFactor{
+      path: target_path,
+      state: [:unchanged],
+      message: "function: #{source_function} not found, no changes to make",
       file_contents: list_to_string(contents_list)
     }
   end
@@ -137,8 +140,14 @@ defmodule ExFactor.Changer do
     target_module = Keyword.fetch!(opts, :target_module)
     target_string = Util.module_to_string(target_module)
 
+    # when module has not aliases
+    contents_list = if Enum.find(contents_list, fn el -> match_alias?(el, "") end) do
+      contents_list
+    else
+      List.insert_at(contents_list, 1, "alias #{target_string}")
+    end
+
     if Enum.find(contents_list, fn el -> match_alias?(el, target_string) end) do
-      # IO.puts "#{target_string} FOUND THE ALIAS"
       {state, contents_list}
     else
       contents_list
@@ -146,9 +155,9 @@ defmodule ExFactor.Changer do
         cond do
           match_alias?(elem, source_string) ->
             new_alias = String.replace(elem, source_string, target_string)
-            {:alias, [new_alias | [elem | acc]]}
+            {:alias, [elem | [new_alias | acc]]}
           prev == :alias and not match_alias?(elem, "") ->
-            {:none, [ "alias #{target_string}" | [elem | acc]]}
+            {:none, [elem | ["alias #{target_string}" | acc]]}
           match_alias?(elem, "") ->
             {:alias, [elem | acc]}
           true ->
