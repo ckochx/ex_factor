@@ -284,5 +284,46 @@ defmodule ExFactor.ExtractorTest do
       File.rm("lib/ex_factor/tmp/source_module.ex")
       File.rm("lib/ex_factor/tmp/target_module.ex")
     end
+
+    test "extract references to the function in the source module" do
+      content = """
+      defmodule ExFactorSampleModule do
+        def pub1(arg1) do
+          arg1
+        end
+
+        def pub2(arg2) do
+          pub1(arg2)
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.TargetModule do
+        def pub_exists(arg_exists) do
+          :ok
+        end
+        def pub_exists(:error) do
+          :error
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
+        source_function: :refactor1,
+        arity: 1
+      ]
+
+      Extractor.emplace(opts)
+
+      file = File.read!("lib/ex_factor/tmp/source_module.ex")
+      assert file =~ "def pub2(arg2) do\n    TargetModule.pub1(arg2)"
+    end
   end
 end

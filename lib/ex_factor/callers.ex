@@ -19,8 +19,16 @@ defmodule ExFactor.Callers do
   end
 
   def callers(mod, func, arity) do
+
+    # Code.compiler_options(parser_options: [columns: true])
+    # Mix.Task.rerun("compile.elixir", ["--force", "--tracer", "ExFactor.CallerTracer"])
+
     Mix.Tasks.Xref.calls([])
     |> Enum.filter(fn x ->
+      # {:ok, _} = Import2Alias.Server.start_link(elem(x.callee, 0))
+      # entries = Import2Alias.Server.entries()
+      # |> IO.inspect(label: "")
+
       x.callee == {cast(mod), cast(func), arity}
     end)
   end

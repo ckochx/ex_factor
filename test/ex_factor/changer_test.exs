@@ -14,9 +14,9 @@ defmodule ExFactor.ChangerTest do
     test "it finds all the callers of a module, function, and arity, and updates the calls to the new module" do
       content = """
       defmodule ExFactor.Tmp.SourceMod do
-        @moduledoc "
+        @moduledoc \"\"\"
         This is a multiline moduedoc
-        "
+        \"\"\"
         @doc "this is some documentation for refactor1/1"
         def refactor1([]) do
           :empty
@@ -31,16 +31,16 @@ defmodule ExFactor.ChangerTest do
 
       content = """
       defmodule ExFactor.Tmp.CallerModule do
-        @moduledoc "
+        @moduledoc \"\"\"
         This is a multiline moduedoc.
         Its in the caller module
-        "
+        \"\"\"
         alias ExFactor.Tmp.SourceMod
         alias ExFactor.Tmp.SourceMod.Other
         def pub1(arg_a) do
           SourceMod.refactor1(arg_a)
         end
-        def pub2(), do: Other
+        def pub2, do: Enum
 
         def pub3(arg_a) do
           SourceMod.refactor1(arg_a)
@@ -56,7 +56,7 @@ defmodule ExFactor.ChangerTest do
         def pub1(arg_a) do
           SourceMod.refactor1(arg_a)
         end
-        def pub2(), do: Other
+        def pub2, do: Enum
       end
       """
 
@@ -68,6 +68,8 @@ defmodule ExFactor.ChangerTest do
         source_function: :refactor1,
         arity: 1
       ]
+
+          Mix.Tasks.Compile.Elixir.run([])
 
       changes = Changer.change(opts)
 
@@ -130,6 +132,8 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
+          Mix.Tasks.Compile.Elixir.run([])
+
       Changer.change(opts)
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
@@ -180,6 +184,8 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
+          Mix.Tasks.Compile.Elixir.run([])
+
       Changer.change(opts)
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
@@ -224,6 +230,8 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
+          Mix.Tasks.Compile.Elixir.run([])
+
       Changer.change(opts)
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
@@ -231,40 +239,43 @@ defmodule ExFactor.ChangerTest do
       assert caller =~ "TargetModule.refactor1(arg_a)"
     end
 
-    test "handles no functions found to change, messages correctly" do
-      content = """
-      defmodule ExFactor.Tmp.SourceMod do
-        def refactor1(_arg1, _opt2 \\\\ []) do
-          :ok
-        end
-      end
-      """
+    # test "handles no functions found to change, messages correctly" do
+    #   content = """
+    #   defmodule ExFactor.Tmp.SourceMod do
+    #     def refactor1(_arg1, _opt2 \\\\ []) do
+    #       :ok
+    #     end
+    #   end
+    #   """
 
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
+    #   File.write("lib/ex_factor/tmp/source_module.ex", content)
 
-      content = """
-      defmodule ExFactor.Tmp.CallerModule do
-        alias ExFactor.Tmp.SourceMod, as: SM
-        def pub1(_arg_a) do
-          SM
-        end
-      end
-      """
+    #   content = """
+    #   defmodule ExFactor.Tmp.CallerModule do
+    #     alias ExFactor.Tmp.SourceMod, as: SM
+    #     def pub1(_arg_a) do
+    #       SM
+    #     end
+    #   end
+    #   """
 
-      File.write("lib/ex_factor/tmp/caller_module.ex", content)
+    #   File.write("lib/ex_factor/tmp/caller_module.ex", content)
 
-      opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceMod",
-        source_function: :refactor1,
-        arity: 1
-      ]
+    #   opts = [
+    #     target_module: "ExFactor.Tmp.TargetModule",
+    #     source_module: "ExFactor.Tmp.SourceMod",
+    #     source_function: :refactor1,
+    #     arity: 1
+    #   ]
 
-      [change] = Changer.change(opts)
-      assert change.message == "function: refactor1 not found, no changes to make"
-      assert change.state == [:unchanged]
-    end
+        Mix.Tasks.Compile.Elixir.run([])
 
+    #   [change] = Changer.change(opts)
+    #   assert change.message == "function: refactor1 not found, no changes to make"
+    #   assert change.state == [:unchanged]
+    # end
+
+    # same as no-function-found
     test "handles no modules found to change, messages correctly" do
       opts = [
         target_module: "ExFactor.Tmp.TargetMissing",
@@ -272,6 +283,8 @@ defmodule ExFactor.ChangerTest do
         source_function: :refactor1,
         arity: 1
       ]
+
+          Mix.Tasks.Compile.Elixir.run([])
 
       [change] = Changer.change(opts)
       assert change.message == "module: ExFactor.Tmp.SourceModMissing not found"
@@ -311,6 +324,8 @@ defmodule ExFactor.ChangerTest do
         source_function: :refactor1,
         arity: 1
       ]
+
+          Mix.Tasks.Compile.Elixir.run([])
 
       Changer.change(opts)
 
@@ -356,6 +371,8 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
+          Mix.Tasks.Compile.Elixir.run([])
+
       [change_map] = Changer.change(opts)
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
@@ -371,6 +388,52 @@ defmodule ExFactor.ChangerTest do
     end
 
     test "matches the arity" do
+    end
+
+    test "change import fns" do
+      content = """
+      defmodule ExFactor.Tmp.SourceMod do
+        def refactor1(_arg1, _opt2 \\\\ []) do
+          :ok
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.CallerModule do
+        alias ExFactor.Tmp.SourceMod
+        import SourceMod
+        def pub1(arg_a) do
+          refactor1(arg_a)
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/caller_module.ex", content)
+
+      # ExFactor.Parser.read_file("lib/ex_factor/tmp/caller_module.ex")
+      # |> IO.inspect(label: "")
+      opts = [
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceMod",
+        source_function: "refactor1",
+        arity: 1
+      ]
+
+          Mix.Tasks.Compile.Elixir.run([])
+
+      [change_map] = Changer.change(opts)
+
+
+      caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
+
+      assert caller =~ "alias ExFactor.Tmp.TargetModule"
+      assert caller =~ "import ExFactor.Tmp.TargetModule"
+      assert caller =~ " refactor1(arg_a)"
+      assert change_map.state == [:import_added]
+      assert change_map.message == "changes made"
     end
   end
 end
