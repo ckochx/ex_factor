@@ -13,18 +13,18 @@ defmodule ExFactor.ChangerTest do
   describe "change/1" do
     test "it finds all the callers of a module, function, and arity, and updates the calls to the new module" do
       content = """
-      defmodule ExFactor.Tmp.SourceMod do
-        @moduledoc \"\"\"
-        This is a multiline moduedoc
-        \"\"\"
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          :empty
+        defmodule ExFactor.Tmp.SourceMod do
+          @moduledoc "
+          This is a multiline moduedoc
+          "
+          @doc "this is some documentation for refactor1/1"
+          def refactor1([]) do
+            :empty
+          end
+          def refactor1(arg1) do
+            {:ok, arg1}
+          end
         end
-        def refactor1(arg1) do
-          {:ok, arg1}
-        end
-      end
       """
 
       File.write("lib/ex_factor/tmp/source_module.ex", content)
@@ -40,7 +40,7 @@ defmodule ExFactor.ChangerTest do
         def pub1(arg_a) do
           SourceMod.refactor1(arg_a)
         end
-        def pub2, do: Enum
+        def pub2, do: Other
 
         def pub3(arg_a) do
           SourceMod.refactor1(arg_a)
@@ -68,8 +68,6 @@ defmodule ExFactor.ChangerTest do
         source_function: :refactor1,
         arity: 1
       ]
-
-          Mix.Tasks.Compile.Elixir.run([])
 
       changes = Changer.change(opts)
 
@@ -132,7 +130,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       Changer.change(opts)
 
@@ -184,7 +182,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       Changer.change(opts)
 
@@ -199,7 +197,6 @@ defmodule ExFactor.ChangerTest do
                  el =~ "alias ExFactor.Tmp.TargetModule"
                end)
     end
-
 
     test "it finds all the callers of a module by an alias, function, and arity, and updates the calls to the new module " do
       content = """
@@ -230,7 +227,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       Changer.change(opts)
 
@@ -238,42 +235,6 @@ defmodule ExFactor.ChangerTest do
       assert caller =~ "alias ExFactor.Tmp.TargetModule"
       assert caller =~ "TargetModule.refactor1(arg_a)"
     end
-
-    # test "handles no functions found to change, messages correctly" do
-    #   content = """
-    #   defmodule ExFactor.Tmp.SourceMod do
-    #     def refactor1(_arg1, _opt2 \\\\ []) do
-    #       :ok
-    #     end
-    #   end
-    #   """
-
-    #   File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-    #   content = """
-    #   defmodule ExFactor.Tmp.CallerModule do
-    #     alias ExFactor.Tmp.SourceMod, as: SM
-    #     def pub1(_arg_a) do
-    #       SM
-    #     end
-    #   end
-    #   """
-
-    #   File.write("lib/ex_factor/tmp/caller_module.ex", content)
-
-    #   opts = [
-    #     target_module: "ExFactor.Tmp.TargetModule",
-    #     source_module: "ExFactor.Tmp.SourceMod",
-    #     source_function: :refactor1,
-    #     arity: 1
-    #   ]
-
-        Mix.Tasks.Compile.Elixir.run([])
-
-    #   [change] = Changer.change(opts)
-    #   assert change.message == "function: refactor1 not found, no changes to make"
-    #   assert change.state == [:unchanged]
-    # end
 
     # same as no-function-found
     test "handles no modules found to change, messages correctly" do
@@ -283,8 +244,6 @@ defmodule ExFactor.ChangerTest do
         source_function: :refactor1,
         arity: 1
       ]
-
-          Mix.Tasks.Compile.Elixir.run([])
 
       [change] = Changer.change(opts)
       assert change.message == "module: ExFactor.Tmp.SourceModMissing not found"
@@ -325,7 +284,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       Changer.change(opts)
 
@@ -371,7 +330,7 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       [change_map] = Changer.change(opts)
 
@@ -422,10 +381,9 @@ defmodule ExFactor.ChangerTest do
         arity: 1
       ]
 
-          Mix.Tasks.Compile.Elixir.run([])
+      Mix.Tasks.Compile.Elixir.run([])
 
       [change_map] = Changer.change(opts)
-
 
       caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
 

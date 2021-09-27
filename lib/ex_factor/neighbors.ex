@@ -9,6 +9,7 @@ defmodule ExFactor.Neighbors do
   AST elements. Ignore certain elements, such as :alias.
   """
   def walk(block, fn_name, arity \\ :unmatched)
+
   def walk(block, fn_name, arity) when is_binary(fn_name) do
     # fn_name_atom = String.to_atom(fn_name)
     walk(block, String.to_atom(fn_name), arity)

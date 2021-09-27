@@ -18,7 +18,10 @@ defmodule ExFactor.CallersTest do
 
   describe "callers/3" do
     test "it should report callers of a module" do
-      [one, _two, _three] = Callers.callers(ExFactor.Parser, :all_functions, 1)
+      [one, _two, _three] =
+        ExFactor.Parser
+        |> Callers.callers(:all_functions, 1)
+        |> Enum.sort_by(& &1.file)
 
       assert one.caller_module == ExFactor.Callers
       assert one.file == "lib/ex_factor/callers.ex"
@@ -26,9 +29,10 @@ defmodule ExFactor.CallersTest do
     end
 
     test "it converts strings to atoms" do
-      [one, _two, _three] = "ExFactor.Parser"
-      |> Callers.callers("all_functions", 1)
-      |> Enum.sort_by(&(&1.file))
+      [one, _two, _three] =
+        "ExFactor.Parser"
+        |> Callers.callers("all_functions", 1)
+        |> Enum.sort_by(& &1.file)
 
       assert one.caller_module == ExFactor.Callers
       assert one.file == "lib/ex_factor/callers.ex"

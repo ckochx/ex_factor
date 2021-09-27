@@ -51,7 +51,8 @@ defmodule ExFactor.Extractor do
         |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
 
       _ ->
-        target_mod = Module.concat [target_module]
+        target_mod = Module.concat([target_module])
+
         quote generated: true do
           defmodule unquote(target_mod) do
             @moduledoc false
@@ -79,6 +80,7 @@ defmodule ExFactor.Extractor do
 
   defp write_file(target_path, contents, module, _dry_run) do
     _ = File.write(target_path, contents, [:write])
+
     %{
       module: module,
       path: target_path,

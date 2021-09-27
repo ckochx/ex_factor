@@ -19,7 +19,6 @@ defmodule ExFactor.Callers do
   end
 
   def callers(mod, func, arity) do
-
     # Code.compiler_options(parser_options: [columns: true])
     # Mix.Task.rerun("compile.elixir", ["--force", "--tracer", "ExFactor.CallerTracer"])
 
@@ -34,9 +33,12 @@ defmodule ExFactor.Callers do
   end
 
   def cast(value) when is_atom(value), do: value
+
   def cast(value) do
     cond do
-      String.downcase(value) == value -> String.to_atom(value)
+      String.downcase(value) == value ->
+        String.to_atom(value)
+
       true ->
         cast_module(value)
     end

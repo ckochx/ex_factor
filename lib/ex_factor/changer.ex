@@ -19,91 +19,53 @@ defmodule ExFactor.Changer do
 
     source_module
     |> Callers.callers(source_function, arity)
-    |> update_callers_from3(opts)
+    |> Enum.group_by(& &1.file)
+    |> update_caller_groups(opts)
   end
 
-  # defp update_callers([], opts) do
-  #   source_module = Keyword.fetch!(opts, :source_module)
-  #   [%ExFactor{state: [:unchanged], message: "module: #{source_module} not found"}]
-  # end
+  defp update_caller_groups(empty_map, opts) when empty_map == %{},
+    do: update_caller_groups([], opts)
 
-  # defp update_callers(callers, opts) do
-  #   Enum.map(callers, fn caller ->
-  #     File.read!(caller.filepath)
-  #     |> String.split("\n")
-  #     |> find_and_replace_target(opts, caller.filepath)
-  #   end)
-  # end
-
-  defp update_callers_from3([], opts) do
+  defp update_caller_groups([], opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     [%ExFactor{state: [:unchanged], message: "module: #{source_module} not found"}]
   end
 
-  defp update_callers_from3(callers, opts) do
-    Enum.map(callers, fn caller ->
-      File.read!(caller.file)
-      |> String.split("\n")
-      |> find_and_replace_target(opts, caller.file, caller.line)
+  defp update_caller_groups(callers, opts) do
+    dry_run = Keyword.get(opts, :dry_run, false)
+    source_function = Keyword.fetch!(opts, :source_function)
+
+    Enum.map(callers, fn {file, callers} ->
+      file_list =
+        File.read!(file)
+        |> String.split("\n")
+
+      callers
+      |> Enum.reduce({:unchanged, file_list}, fn %{line: line}, acc ->
+        find_and_replace_function(acc, opts, line)
+      end)
+      |> maybe_add_alias(opts)
+      |> maybe_add_import(opts)
+      |> write_file(source_function, file, dry_run)
     end)
   end
 
-  # defp find_and_replace_target(list, opts, filepath) do
-  #   # opts values
-  #   source_module = Keyword.fetch!(opts, :source_module)
-  #   source_function = Keyword.fetch!(opts, :source_function)
-  #   target_module = Keyword.fetch!(opts, :target_module)
-  #   _arity = Keyword.fetch!(opts, :arity)
-  #   dry_run = Keyword.get(opts, :dry_run, false)
-
-  #   # modified values
-  #   source_string = Util.module_to_string(source_module)
-  #   source_modules = String.split(source_module, ".")
-  #   source_alias = Enum.at(source_modules, -1)
-  #   target_alias = preferred_alias(list, target_module)
-  #   source_alias_alt = find_alias_as(list, source_module)
-
-  #   Enum.reduce(list, {:unchanged, []}, fn elem, {state, acc} ->
-  #     cond do
-  #       # match full module name
-  #       String.match?(elem, ~r/#{source_string}\.#{source_function}/) ->
-  #         elem = String.replace(elem, source_module, target_alias)
-  #         {:changed, [elem | acc]}
-
-  #       # match aliased module name
-  #       String.match?(elem, ~r/#{source_alias}\.#{source_function}/) ->
-  #         elem = String.replace(elem, source_alias, target_alias)
-  #         {:changed, [elem | acc]}
-
-  #       # match module name aliased :as
-  #       String.match?(elem, ~r/#{source_alias_alt}\.#{source_function}/) ->
-  #         elem = String.replace(elem, source_alias_alt, target_alias)
-  #         {:changed, [elem | acc]}
-
-  #       true ->
-  #         {state, [elem | acc]}
-  #     end
-  #   end)
-  #   |> maybe_add_alias(opts)
-  #   |> write_file(source_function, filepath, dry_run)
-  # end
-
-  defp find_and_replace_target(list, opts, filepath, line) do
+  defp find_and_replace_function({state, file_list}, opts, line) do
     # opts values
     source_module = Keyword.fetch!(opts, :source_module)
     source_function = Keyword.fetch!(opts, :source_function)
     target_module = Keyword.fetch!(opts, :target_module)
-    dry_run = Keyword.get(opts, :dry_run, false)
 
     # modified values
     source_string = Util.module_to_string(source_module)
     source_modules = String.split(source_module, ".")
     source_alias = Enum.at(source_modules, -1)
-    target_alias = preferred_alias(list, target_module)
-    source_alias_alt = find_alias_as(list, source_module)
+    target_alias = preferred_alias(file_list, target_module)
+    source_alias_alt = find_alias_as(file_list, source_module)
+    fn_line = Enum.at(file_list, line - 1)
 
-    fn_line = Enum.at(list, line - 1)
-      {state, new_line} = cond do
+    {new_state, new_line} =
+      cond do
         # match full module name
         String.match?(fn_line, ~r/#{source_string}\.#{source_function}/) ->
           fn_line = String.replace(fn_line, source_module, target_alias)
@@ -120,13 +82,10 @@ defmodule ExFactor.Changer do
           {:changed, fn_line}
 
         true ->
-          {:unchanged, fn_line}
+          {state, fn_line}
       end
 
-    {state, List.replace_at(list, line - 1, new_line)}
-    |> maybe_add_alias(opts)
-    |> maybe_add_import(opts)
-    |> write_file(source_function, filepath, dry_run)
+    {new_state, List.replace_at(file_list, line - 1, new_line)}
   end
 
   defp find_alias_as(list, module) do
@@ -175,9 +134,7 @@ defmodule ExFactor.Changer do
   end
 
   defp list_to_string(contents_list) do
-    contents_list
-    |> Enum.reverse()
-    |> Enum.join("\n")
+    Enum.join(contents_list, "\n")
   end
 
   defp maybe_add_alias({state, contents_list}, opts) do
@@ -187,11 +144,12 @@ defmodule ExFactor.Changer do
     target_string = Util.module_to_string(target_module)
 
     # when module has no aliases
-    contents_list = if Enum.find(contents_list, fn el -> str_match?(el, "") end) do
-      contents_list
-    else
-      List.insert_at(contents_list, 1, "alias #{target_string}")
-    end
+    contents_list =
+      if Enum.find(contents_list, fn el -> str_match?(el, "") end) do
+        contents_list
+      else
+        List.insert_at(contents_list, 1, "alias #{target_string}")
+      end
 
     if Enum.find(contents_list, fn el -> str_match?(el, target_string) end) do
       {state, contents_list}
@@ -202,10 +160,13 @@ defmodule ExFactor.Changer do
           str_match?(elem, source_string) ->
             new_alias = String.replace(elem, source_string, target_string)
             {:alias, [elem | [new_alias | acc]]}
+
           prev == :alias and not str_match?(elem, "") ->
             {:alias_added, [elem | ["alias #{target_string}" | acc]]}
+
           str_match?(elem, "") ->
             {state, [elem | acc]}
+
           true ->
             {state, [elem | acc]}
         end
@@ -223,14 +184,17 @@ defmodule ExFactor.Changer do
     source_alias_alt = find_alias_as(contents_list, source_module)
 
     # when module has no imports
-    index = Enum.find_index(contents_list, fn el -> str_match?(el, source_alias, "import") end) ||
-      Enum.find_index(contents_list, fn el -> str_match?(el, source_alias_alt, "import") end)
+    index =
+      Enum.find_index(contents_list, fn el -> str_match?(el, source_alias, "import") end) ||
+        Enum.find_index(contents_list, fn el -> str_match?(el, source_alias_alt, "import") end)
 
-    new_state = if state == :unchanged do
-      [:import_added]
-    else
-      [:import_added | [state]]
-    end
+    new_state =
+      if state == :unchanged do
+        [:import_added]
+      else
+        [:import_added | [state]]
+      end
+
     if index do
       {new_state, List.insert_at(contents_list, index + 1, "import #{target_string}")}
     else
@@ -239,6 +203,7 @@ defmodule ExFactor.Changer do
   end
 
   defp str_match?(string, match, token \\ "alias")
+
   defp str_match?(string, "", token) do
     String.match?(string, ~r/(^|\s)#{token}\s/)
   end
@@ -246,8 +211,4 @@ defmodule ExFactor.Changer do
   defp str_match?(string, module_string, token) do
     String.match?(string, ~r/(^|\s)#{token} #{module_string}(\s|$|\,)/)
   end
-
-  # defp try_replace(string, "", _), do: string
-  # defp try_replace(string, nil, _), do: string
-  # defp try_replace(string, source, target), do: String.replace(string, source, target)
 end
