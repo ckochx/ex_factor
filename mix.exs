@@ -37,7 +37,6 @@ defmodule ExFactor.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp package() do
     [
-      name: "ExFactor",
       licenses: ["CC-BY-NC-ND-4.0"],
       links: %{"GitHub" => "https://github.com/ckochx/ex_factor"}
     ]
