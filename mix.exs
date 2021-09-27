@@ -24,11 +24,10 @@ defmodule ExFactor.MixProject do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  # defp elixirc_paths(_), do: ["lib"]
-  defp elixirc_paths(_), do: ["lib", "test"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp description do
-    "ExFactor is a refactoring helper."
+    "ExFactor is a refactoring helper that will find and replace instances of a module-function-arity in your source code."
   end
 
   defp deps do
@@ -39,9 +38,6 @@ defmodule ExFactor.MixProject do
   defp package() do
     [
       name: "ExFactor",
-      # These are the default files included in the package
-      # files: ~w(lib priv .formatter.exs mix.exs README* readme* LICENSE*
-      #           license* CHANGELOG* changelog* src),
       licenses: ["CC-BY-NC-ND-4.0"],
       links: %{"GitHub" => "https://github.com/ckochx/ex_factor"}
     ]
