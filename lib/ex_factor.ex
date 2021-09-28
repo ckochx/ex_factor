@@ -43,12 +43,13 @@ defmodule ExFactor do
 
   defp format(%{path: nil} = struct), do: struct
 
-  defp format(%{additions: adds, changes: changes, removals: removals}) do
+  defp format(%{additions: adds, changes: changes, removals: removals} = output) do
     %{
       additions: format(adds),
       changes: format(changes),
       removals: format(removals)
     }
+    output
   end
 
   defp format(list) when is_list(list) do

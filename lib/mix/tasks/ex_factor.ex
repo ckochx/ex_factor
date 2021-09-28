@@ -22,10 +22,11 @@ defmodule Mix.Tasks.ExFactor do
     - `:arity` the arity of function to move.
     - `:target` is the fully-qualified destination for the removed function. If the moduel does not exist, it will be created.
 
-  Optional command line args: --source_path, --target_path, --dryrun
+  Optional command line args: --source_path, --target_path, --dryrun, --verbose
     - `:target_path` Specify an alternate (non-standard) path for the source file.
     - `:source_path` Specify an alternate (non-standard) path for the destination file.
     - `:dryrun` Don't write any updates, only return the built results.
+    - `:verbose` (Default false) include the :state and :file_contents key values.
 
   Example Usage:
   ```
@@ -42,6 +43,7 @@ defmodule Mix.Tasks.ExFactor do
         strict: [
           arity: :integer,
           dryrun: :boolean,
+          verbose: :boolean,
           function: :string,
           key: :string,
           module: :string,
@@ -54,6 +56,7 @@ defmodule Mix.Tasks.ExFactor do
     parsed_opts
     |> options()
     |> ExFactor.refactor()
+    |> cli_output(parsed_opts)
   end
 
   defp options(opts) do
@@ -62,5 +65,38 @@ defmodule Mix.Tasks.ExFactor do
     |> Keyword.put(:source_module, Keyword.fetch!(opts, :module))
     |> Keyword.put(:target_module, Keyword.fetch!(opts, :target))
     |> Keyword.put(:dry_run, Keyword.get(opts, :dryrun, false))
+  end
+
+  defp cli_output(map, opts) do
+    verbose = Keyword.get(opts, :verbose, false)
+
+    format_entry(Map.get(map, :additions), "Additions", :light_cyan_background, verbose)
+    format_entry(Map.get(map, :changes), "Changes", :light_green_background, verbose)
+    format_entry(Map.get(map, :removals), "Removals", :light_red_background, verbose)
+  end
+
+  defp format_entry(entry, title, color, verbose) do
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, title])]))
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "================================================================================"])]))
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"])]))
+    handle_entry(entry, color, verbose)
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "================================================================================"])]))
+    IO.puts("")
+  end
+
+  defp handle_entry(entries, color, verbose) when is_list(entries) do
+    Enum.map(entries, &handle_entry(&1, color, verbose))
+  end
+
+  defp handle_entry(entry, color, true) do
+    handle_entry(entry, color , false)
+    IO.puts("  File contents: \n#{entry.file_contents}")
+    IO.puts("  State: #{inspect(entry.state)}")
+  end
+  defp handle_entry(entry, color , false) do
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"])]))
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Module: #{entry.module}"])]))
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Path: #{entry.path}"])]))
+    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Message: #{entry.message}"])]))
   end
 end

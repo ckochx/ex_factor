@@ -19,6 +19,7 @@ defmodule ExFactor.Extractor do
   Optional keys:
     - :source_path Specify an alternate (non-standard) path for the source module
     - :target_path Specify an alternate (non-standard) path for the destination module
+    - :dry_run Don't write any updates
   """
 
   def emplace(opts) do
