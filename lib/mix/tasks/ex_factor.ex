@@ -1,7 +1,9 @@
-defmodule Mix.Tasks.ExFactor.Refactor do
+defmodule Mix.Tasks.ExFactor do
   @shortdoc """
   Refactor a module, function, and arity to a new module namespace. Find or create the new module as appropriate.
-  Required command line args: --module, --function, --arity, --target. (See additional explantion in: #{__MODULE__})
+  Required command line args: --module, --function, --arity, --target.
+  `mix help ex_factor` for additional options
+  See additional explantion in: #{__MODULE__}
   """
 
   @moduledoc """
@@ -20,11 +22,16 @@ defmodule Mix.Tasks.ExFactor.Refactor do
     - `:arity` the arity of function to move.
     - `:target` is the fully-qualified destination for the removed function. If the moduel does not exist, it will be created.
 
-  Optional command line args: --source_path, --target_path
+  Optional command line args: --source_path, --target_path, --dryrun
     - `:target_path` Specify an alternate (non-standard) path for the source file.
     - `:source_path` Specify an alternate (non-standard) path for the destination file.
     - `:dryrun` Don't write any updates, only return the built results.
 
+  Example Usage:
+  ```
+  mix ex_factor --module MyModule.ToChange --function fn_to_change
+  --arity 2 --target YourModule.ChangeTo
+  ```
   """
 
   use Mix.Task

@@ -12,7 +12,7 @@ Use at your peril, _for now._
 
 ### Example
 ```elixir
- mix ex_factor.refactor --module TestModule.Here --function my_func --arity 1 --target NewModule.Test
+ mix ex_factor --module TestModule.Here --function my_func --arity 1 --target NewModule.Test
 ```
 
 ## Roadmap TODO
