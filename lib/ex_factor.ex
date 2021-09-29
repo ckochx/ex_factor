@@ -23,6 +23,7 @@ defmodule ExFactor do
   def refactor(opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     target_module = Keyword.fetch!(opts, :target_module)
+    dry_run = Keyword.get(opts, :dry_run, false)
 
     opts =
       opts
@@ -34,16 +35,18 @@ defmodule ExFactor do
     # remove should be last (before format)
     removals = Remover.remove(opts)
 
-    format(%{additions: emplace, changes: changes, removals: removals})
+    format(%{additions: emplace, changes: changes, removals: removals}, dry_run)
   end
 
   def path(module) do
     Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
 
-  defp format(%{path: nil} = struct), do: struct
+  defp format(%{path: nil} = struct, _dry_run), do: struct
 
-  defp format(%{additions: adds, changes: changes, removals: removals} = output) do
+  defp format(output, true), do: output
+
+  defp format(%{additions: adds, changes: changes, removals: removals} = output, false) do
     %{
       additions: format(adds),
       changes: format(changes),
