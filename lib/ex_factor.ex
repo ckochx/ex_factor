@@ -49,6 +49,7 @@ defmodule ExFactor do
       changes: format(changes),
       removals: format(removals)
     }
+
     output
   end
 

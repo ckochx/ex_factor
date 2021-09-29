@@ -33,20 +33,19 @@ defmodule ExFactor.Changer do
 
   defp update_caller_groups(callers, opts) do
     dry_run = Keyword.get(opts, :dry_run, false)
-    source_function = Keyword.fetch!(opts, :source_function)
 
-    Enum.map(callers, fn {file, callers} ->
+    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
       file_list =
         File.read!(file)
         |> String.split("\n")
 
-      callers
+      grouped_callers
       |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
         find_and_replace_function(acc, opts, line)
       end)
       |> maybe_add_import(opts)
       |> maybe_add_alias(opts)
-      |> write_file(source_function, file, dry_run)
+      |> write_file(first.caller_module, file, dry_run)
     end)
   end
 
@@ -112,22 +111,24 @@ defmodule ExFactor.Changer do
     end
   end
 
-  defp write_file({state, contents_list}, _, target_path, true) do
+  defp write_file({state, contents_list}, module, target_path, true) do
     %ExFactor{
       path: target_path,
       state: [:dry_run | state],
+      module: module,
       message: "--dry_run changes to make",
       file_contents: list_to_string(contents_list)
     }
   end
 
-  defp write_file({state, contents_list}, _, target_path, _dry_run) do
+  defp write_file({state, contents_list}, module, target_path, _dry_run) do
     contents = list_to_string(contents_list)
     File.write(target_path, contents, [:write])
 
     %ExFactor{
       path: target_path,
       state: state,
+      module: module,
       message: "changes made",
       file_contents: contents
     }
