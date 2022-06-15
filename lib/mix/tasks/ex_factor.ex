@@ -69,18 +69,49 @@ defmodule Mix.Tasks.ExFactor do
 
   defp cli_output(map, opts) do
     verbose = Keyword.get(opts, :verbose, false)
+    # dry_run = Keyword.get(opts, :dryrun, false)
 
     format_entry(Map.get(map, :additions), "Additions", :light_cyan_background, verbose)
     format_entry(Map.get(map, :changes), "Changes", :light_green_background, verbose)
     format_entry(Map.get(map, :removals), "Removals", :light_red_background, verbose)
+    message(false)
   end
 
   defp format_entry(entry, title, color, verbose) do
     IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, title])]))
-    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "================================================================================"])]))
-    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"])]))
+
+    IO.puts(
+      IO.ANSI.format([
+        color,
+        IO.ANSI.format([
+          :black,
+          "================================================================================"
+        ])
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        color,
+        IO.ANSI.format([
+          :black,
+          "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+        ])
+      ])
+    )
+
     handle_entry(entry, color, verbose)
-    IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "================================================================================"])]))
+
+    IO.puts(
+      IO.ANSI.format([
+        color,
+        IO.ANSI.format([
+          :black,
+          "================================================================================"
+        ])
+      ])
+    )
+
     IO.puts("")
   end
 
@@ -89,14 +120,70 @@ defmodule Mix.Tasks.ExFactor do
   end
 
   defp handle_entry(entry, color, true) do
-    handle_entry(entry, color , false)
+    handle_entry(entry, color, false)
     IO.puts("  File contents: \n#{entry.file_contents}")
     IO.puts("  State: #{inspect(entry.state)}")
   end
-  defp handle_entry(entry, color , false) do
+
+  defp handle_entry(entry, color, false) do
     IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"])]))
     IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Module: #{entry.module}"])]))
     IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Path: #{entry.path}"])]))
     IO.puts(IO.ANSI.format([color, IO.ANSI.format([:black, "  Message: #{entry.message}"])]))
+  end
+
+  @message """
+  `ExFactor` (by design), does not change test files.
+
+  There are two important and practical reason for this.
+
+  Reason1:
+    The test failures provide a safety net to help ensure that the ExFactor-ed functions
+    continue to behave as expected.
+
+  Reason2:
+    Because .exs files are evaluated at runtime the introspection provided by the compiler
+    is not available.
+
+  In future revisions, we hope to address this issue, but for now, refactoring test files
+  remains your responsibility.
+  """
+  defp message(true), do: ""
+
+  defp message(false) do
+    IO.puts(
+      IO.ANSI.format([
+        :magenta_background,
+        IO.ANSI.format([
+          :bright,
+          "⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠"
+        ])
+      ])
+    )
+
+    IO.puts(IO.ANSI.format([:magenta_background, IO.ANSI.format([:bright, "IMPORTANT NOTE:"])]))
+
+    IO.puts(
+      IO.ANSI.format([
+        :magenta_background,
+        IO.ANSI.format([
+          :bright,
+          "✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖✖"
+        ])
+      ])
+    )
+
+    IO.puts(
+      IO.ANSI.format([
+        :magenta_background,
+        IO.ANSI.format([
+          :bright,
+          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        ])
+      ])
+    )
+
+    IO.puts(IO.ANSI.format([:magenta_background, IO.ANSI.format([:bright, ""])]))
+    IO.puts(IO.ANSI.format([:magenta_background, IO.ANSI.format([:bright, @message])]))
   end
 end

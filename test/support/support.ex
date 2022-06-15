@@ -1,6 +1,6 @@
 defmodule ExFactor.Support do
   @moduledoc """
-  Support moduel for `ExFactor` testing.
+  Support module for `ExFactor` testing.
   """
 
   # use alias as: to verify the caller is found.

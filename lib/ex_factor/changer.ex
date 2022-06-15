@@ -157,7 +157,8 @@ defmodule ExFactor.Changer do
   end
 
   defp change_alias({state, contents_list}, target_string) do
-    elem = Enum.find(contents_list, &(str_match?(&1, target_string, "alias")))
+    elem = Enum.find(contents_list, &str_match?(&1, target_string, "alias"))
+
     if elem do
       {[:alias_exists | state], contents_list}
     else
@@ -169,15 +170,21 @@ defmodule ExFactor.Changer do
     cond do
       :alias_changed in state ->
         {state, contents_list}
+
       :alias_added in state ->
         {state, contents_list}
+
       :alias_exists in state ->
         {state, contents_list}
+
       :changed in state ->
-        index = Enum.find_index(contents_list, fn el -> str_match?(el, target_string, "alias") end)
+        index =
+          Enum.find_index(contents_list, fn el -> str_match?(el, target_string, "alias") end)
+
         index = index || 2
         contents_list = List.insert_at(contents_list, index - 1, "alias #{target_string}")
         {set_state(state, :alias_added), contents_list}
+
       true ->
         {state, contents_list}
     end
@@ -197,6 +204,7 @@ defmodule ExFactor.Changer do
         Enum.find_index(contents_list, fn el -> str_match?(el, source_alias_alt, "import") end)
 
     new_state = set_state(state, :import_added)
+
     if index do
       {new_state, List.insert_at(contents_list, index + 1, "import #{target_string}")}
     else

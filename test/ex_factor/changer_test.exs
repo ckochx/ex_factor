@@ -191,7 +191,6 @@ defmodule ExFactor.ChangerTest do
                end)
     end
 
-
     test "handle alias exists with :as" do
       content = """
       defmodule ExFactor.Tmp.SourceMod do
@@ -379,7 +378,11 @@ defmodule ExFactor.ChangerTest do
 
       refute caller =~ "alias ExFactor.Tmp.TargetModule"
       refute caller =~ "TargetModule.refactor1(arg_a)"
-      assert Enum.find(change_map.state, fn el -> String.match?(Atom.to_string(el), ~r/alias_/) end)
+
+      assert Enum.find(change_map.state, fn el ->
+               String.match?(Atom.to_string(el), ~r/alias_/)
+             end)
+
       # change_map.state == [:dry_run, :alias_changed, :changed]
       assert change_map.message == "--dry_run changes to make"
     end
