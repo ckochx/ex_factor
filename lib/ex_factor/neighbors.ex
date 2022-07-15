@@ -8,17 +8,17 @@ defmodule ExFactor.Neighbors do
   Find all the instances of the target function. Return after evaluating all the block-level
   AST elements. Ignore certain elements, such as :alias.
   """
-  def walk(block, fn_name, arity \\ :unmatched)
+  def walk(block, func_name, arity \\ :unmatched)
 
-  def walk(block, fn_name, arity) when is_binary(fn_name) do
-    # fn_name_atom = String.to_atom(fn_name)
-    walk(block, String.to_atom(fn_name), arity)
+  def walk(block, func_name, arity) when is_binary(func_name) do
+    # func_name_atom = String.to_atom(func_name)
+    walk(block, String.to_atom(func_name), arity)
   end
 
-  def walk(block, fn_name, arity) do
+  def walk(block, func_name, arity) do
     block
     |> Enum.reduce({[], []}, fn el, acc ->
-      eval_elem(el, acc, fn_name, arity)
+      eval_elem(el, acc, func_name, arity)
     end)
     |> elem(1)
   end

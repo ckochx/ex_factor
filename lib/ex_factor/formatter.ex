@@ -4,6 +4,8 @@ defmodule ExFactor.Formatter do
   Format a list of files
   """
 
+  def format([nil]), do: nil
+
   def format(args) do
     Mix.Tasks.Format.run(args)
   end

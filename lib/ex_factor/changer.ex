@@ -4,7 +4,6 @@ defmodule ExFactor.Changer do
   """
 
   alias ExFactor.Callers
-  alias ExFactor.Util
 
   @doc """
   Given all the Callers to a module, find the instances of the target function and refactor the
@@ -56,7 +55,7 @@ defmodule ExFactor.Changer do
     target_module = Keyword.fetch!(opts, :target_module)
 
     # modified values
-    source_string = Util.module_to_string(source_module)
+    source_string = to_string(source_module)
     source_modules = String.split(source_module, ".")
     source_alias = Enum.at(source_modules, -1)
     target_alias = preferred_alias(file_list, target_module)
@@ -140,7 +139,7 @@ defmodule ExFactor.Changer do
 
   defp maybe_add_alias({state, contents_list}, opts) do
     target_module = Keyword.fetch!(opts, :target_module)
-    target_string = Util.module_to_string(target_module)
+    target_string = to_string(target_module)
 
     {state, contents_list}
     |> change_alias(target_string)
@@ -193,7 +192,7 @@ defmodule ExFactor.Changer do
   defp maybe_add_import({state, contents_list}, opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     target_module = Keyword.fetch!(opts, :target_module)
-    target_string = Util.module_to_string(target_module)
+    target_string = to_string(target_module)
     source_modules = String.split(source_module, ".")
     source_alias = Enum.at(source_modules, -1)
     source_alias_alt = find_alias_as(contents_list, source_module)

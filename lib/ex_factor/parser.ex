@@ -145,6 +145,10 @@ defmodule ExFactor.Parser do
     block_contents
   end
 
+  defp ast_block([do: block_contents], _acc) do
+    [block_contents]
+  end
+
   defp ast_block(_block, acc) do
     acc
   end

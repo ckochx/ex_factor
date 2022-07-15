@@ -63,6 +63,8 @@ defmodule ExFactor do
     end)
   end
 
+  defp format(%{state: [:unchanged]} = struct), do: struct
+
   defp format(struct) do
     Formatter.format([struct.path])
     Map.get_and_update(struct, :state, fn val -> {val, [:formatted | val]} end)

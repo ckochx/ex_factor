@@ -45,23 +45,21 @@ defmodule ExFactor.Extractor do
         {ast, list} = Parser.read_file(target_path)
         {:defmodule, [do: [line: _begin_line], end: [line: end_line], line: _], _} = ast
 
-        list
-        |> List.insert_at(end_line - 1, refactor_message())
-        |> List.insert_at(end_line, string_fns)
-        |> Enum.join("\n")
-        |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
+        insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
 
       _ ->
         target_mod = Module.concat([target_module])
 
-        quote generated: true do
+        module_contents = quote generated: true do
           defmodule unquote(target_mod) do
-            @moduledoc false
-            unquote(Macro.unescape_string(string_fns))
+            @moduledoc "This module created with ExFactor"
           end
         end
         |> Macro.to_string()
-        |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
+        list = String.split(module_contents, "\n")
+        {:ok, ast} = Code.string_to_quoted(module_contents, token_metadata: true)
+        {:defmodule, [do: [line: _begin_line], end: [line: end_line], closing: _, line: _], _} = ast
+         insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
     end
   end
 
@@ -89,5 +87,13 @@ defmodule ExFactor.Extractor do
       message: "changes made",
       file_contents: contents
     }
+  end
+
+  defp insert_code(list, end_line, string_fns, target_path, target_module, dry_run) do
+    list
+    |> List.insert_at(end_line - 1, refactor_message())
+    |> List.insert_at(end_line, string_fns)
+    |> Enum.join("\n")
+    |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
   end
 end
