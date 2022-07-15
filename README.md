@@ -20,6 +20,7 @@ Use at your peril, _for now._
   - [X] dry-run option
   - [X] CLI output, list files changed and created.
   - [X] format changes
+  - [X] guthub actions, run test suite
 
 ## Roadmap TODO
 
@@ -33,7 +34,6 @@ Use at your peril, _for now._
   - [] update test file refs by CLI option
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
-  - [] guthub actions, run test suite
 
 ## Installation
 
@@ -43,7 +43,7 @@ by adding `ex_factor` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_factor, "~> 0.1.0", only: [:dev]}
+    {:ex_factor, "~> 0.2.1", only: [:dev]}
   ]
 end
 ```
