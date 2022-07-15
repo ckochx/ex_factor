@@ -15,10 +15,16 @@ Use at your peril, _for now._
  mix ex_factor --module TestModule.Here --function my_func --arity 1 --target NewModule.Test
 ```
 
+## Roadmap TODONE
+  - [X] Write a mix task to invoke the Refactorer
+  - [X] dry-run option
+  - [X] CLI output, list files changed and created.
+  - [X] format changes
+
 ## Roadmap TODO
 
   - [] Update .exs files too?
-  - [] Write tests to ensure we can find modules within and across umbrella apps.
+  - [] Write tests to ensure we can find modules across umbrella apps.
   - [] Add configuration hooks?
   - [] find dead functions
   - [] find module attrs and also move them?
@@ -28,12 +34,6 @@ Use at your peril, _for now._
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
   - [] guthub actions, run test suite
-
-## Roadmap TODONE
-  - [X] Write a mix task to invoke the Refactorer
-  - [X] dry-run option
-  - [X] CLI output, list files changed and created.
-  - [X] format changes
 
 ## Installation
 
@@ -52,4 +52,5 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_factor](https://hexdocs.pm/ex_factor).
 
-REFACTORY, just in case.
+Alternate name:
+  REFACTORY, just in case.

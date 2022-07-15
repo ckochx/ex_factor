@@ -1,5 +1,3 @@
-name: Elixir CI
-
 on: push
 
 jobs:
@@ -11,11 +9,11 @@ jobs:
       image: elixir:1.13.1-alpine
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Install Dependencies
-        apk add --no-cache build-base
-        MIX_ENV=test mix local.rebar --force
-        MIX_ENV=test mix local.hex --force
-        MIX_ENV=test mix deps.get
-    - name: Run Tests
-      run: MIX_ENV=test mix tst
+      - uses: actions/checkout@v1
+      - name: Install Dependencies
+          apk add --no-cache build-base
+          MIX_ENV=test mix local.rebar --force
+          MIX_ENV=test mix local.hex --force
+          MIX_ENV=test mix deps.get
+      - name: Run Tests
+        run: MIX_ENV=test mix tst
