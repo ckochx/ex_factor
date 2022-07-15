@@ -4,12 +4,16 @@ defmodule ExFactor.ExtractorTest do
 
   setup_all do
     File.mkdir_p("test/tmp")
-    File.mkdir_p("lib/ex_factor/tmp")
 
     on_exit(fn ->
       File.rm_rf("test/tmp")
-      File.rm_rf("lib/ex_factor/tmp")
     end)
+  end
+
+  setup do
+    File.rm_rf("lib/ex_factor/tmp")
+    File.mkdir_p("lib/ex_factor/tmp")
+    :ok
   end
 
   describe "emplace/1" do
@@ -36,7 +40,7 @@ defmodule ExFactor.ExtractorTest do
         _docp = "here's an arbitrary module underscore"
         @spec pub1(term()) :: term()
         def pub1(arg1) do
-          :ok
+          :pub1_ok
         end
       end
       """
@@ -69,6 +73,37 @@ defmodule ExFactor.ExtractorTest do
       refute file =~ "# a comment and no aliases"
       File.rm("test/tmp/source_module.ex")
       File.rm("test/tmp/target_module.ex")
+    end
+
+    test "write a new file add a moduledoc comment" do
+      content = """
+      defmodule ExFactorSampleModule do
+
+        def pub1(arg1) do
+          :pub1_ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      target_path = "test/tmp/target_module.ex"
+      File.rm(target_path)
+
+      opts = [
+        target_path: target_path,
+        target_module: "ExFactor.NewMod",
+        source_module: "ExFactorSampleModule",
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      Extractor.emplace(opts)
+
+      file = File.read!(target_path)
+      assert file =~ "def(pub1(arg1))"
+      assert file =~ "@moduledoc(\"This module created with ExFactor\")"
     end
 
     test " with dry_run option, don't write the file." do
@@ -107,9 +142,6 @@ defmodule ExFactor.ExtractorTest do
     end
 
     test "write a new file with the function, infer some defaults" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
       content = """
       defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
@@ -133,15 +165,9 @@ defmodule ExFactor.ExtractorTest do
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
       assert file =~ "def(pub1(arg1))"
       assert file =~ "defmodule(ExFactor.Tmp.TargetModule) do"
-
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write the function into an existing module" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
       content = """
       defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
@@ -178,15 +204,9 @@ defmodule ExFactor.ExtractorTest do
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def pub_exists(arg_exists) do"
       assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
-
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write multiple functions, into an existing module" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
       content = """
       defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
@@ -227,15 +247,9 @@ defmodule ExFactor.ExtractorTest do
       assert file =~ "def pub_exists(arg_exists) do"
       assert file =~ "def pub_exists(:error) do"
       assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
-
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
     test "write multiple functions and their docs, into an existing module" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
       content = """
       defmodule ExFactor.Tmp.SourceModule do
         @somedoc "This is somedoc"
@@ -280,11 +294,9 @@ defmodule ExFactor.ExtractorTest do
       assert file =~ "def(refactor1(arg1)) do"
       assert file =~ "def(refactor1([])) do"
       assert file =~ " @doc \"some docs\""
-
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
     end
 
+    @tag :skip
     test "extract references to the function in the source module" do
       content = """
       defmodule ExFactorSampleModule do
@@ -316,7 +328,7 @@ defmodule ExFactor.ExtractorTest do
       opts = [
         target_module: "ExFactor.Tmp.TargetModule",
         source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
+        source_function: :pub1,
         arity: 1
       ]
 

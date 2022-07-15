@@ -2,12 +2,10 @@ defmodule ExFactor.ChangerTest do
   use ExUnit.Case
   alias ExFactor.Changer
 
-  setup_all do
+  setup do
+    File.rm_rf("lib/ex_factor/tmp")
     File.mkdir_p("lib/ex_factor/tmp")
-
-    on_exit(fn ->
-      File.rm_rf("lib/ex_factor/tmp")
-    end)
+    :ok
   end
 
   describe "change/1" do

@@ -39,7 +39,6 @@ defmodule ExFactor.RemoverTest do
       assert file =~ "defmodule ExFactorSampleModule do"
       assert file =~ "_docp = \"here's an arbitrary module underscore"
       refute file =~ "def pub1(arg1) do"
-      File.rm("test/support/source_module.ex")
     end
 
     test "remove the function leave a comment in place" do
@@ -71,7 +70,6 @@ defmodule ExFactor.RemoverTest do
       assert file =~ "_docp = \"here's an arbitrary module underscore"
       assert file =~ "# Function: pub1/1 removed by ExFactor"
       refute file =~ "def pub1(arg1) do"
-      File.rm("test/support/source_module.ex")
     end
 
     test "it rewrites the source file and removes code blocks when function is a string" do

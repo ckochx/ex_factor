@@ -56,6 +56,24 @@ defmodule ExFactor.NeighborsTest do
              ] = Neighbors.walk(block, :pub1)
     end
 
+    test "it should handle the first function without anything else" do
+      module =
+        """
+        defmodule ExFactorSampleModule do
+          def pub1(arg1) do
+            :ok
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+
+      {_ast, block} = Parser.block_contents(module)
+
+      assert [
+               {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
+             ] = Neighbors.walk(block, :pub1)
+    end
+
     test "it finds the target when the last function and function is a string" do
       module =
         """

@@ -50,16 +50,21 @@ defmodule ExFactor.Extractor do
       _ ->
         target_mod = Module.concat([target_module])
 
-        module_contents = quote generated: true do
-          defmodule unquote(target_mod) do
-            @moduledoc "This module created with ExFactor"
+        module_contents =
+          quote generated: true do
+            defmodule unquote(target_mod) do
+              @moduledoc "This module created with ExFactor"
+            end
           end
-        end
-        |> Macro.to_string()
+          |> Macro.to_string()
+
         list = String.split(module_contents, "\n")
         {:ok, ast} = Code.string_to_quoted(module_contents, token_metadata: true)
-        {:defmodule, [do: [line: _begin_line], end: [line: end_line], closing: _, line: _], _} = ast
-         insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
+
+        {:defmodule, [do: [line: _begin_line], end: [line: end_line], closing: _, line: _], _} =
+          ast
+
+        insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
     end
   end
 

@@ -433,6 +433,21 @@ defmodule ExFactor.ParserTest do
                {:defp, _, [{:priv1, _, [{:arg1, _, nil}]}, [do: :ok]]}
              ] = block
     end
+
+    test "it parses a dead-simple module" do
+      content = """
+      defmodule ExFactorSampleModule do
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/test_module.ex", content)
+      {_ast, [f1]} = Parser.block_contents("test/tmp/test_module.ex")
+
+      assert {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]} = f1
+    end
   end
 
   describe "read_file/1" do
