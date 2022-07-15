@@ -16,4 +16,4 @@ jobs:
           MIX_ENV=test mix local.hex --force
           MIX_ENV=test mix deps.get
       - name: Run Tests
-        run: MIX_ENV=test mix tst
+      - run: MIX_ENV=test mix tst
