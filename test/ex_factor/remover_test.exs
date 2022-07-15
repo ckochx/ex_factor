@@ -169,9 +169,85 @@ defmodule ExFactor.RemoverTest do
     end
 
     test "handles no functions found to remove, messages correctly" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      opts = [
+        source_module: ExFactorSampleModule,
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub2,
+        arity: 1
+      ]
+
+      struct = Remover.remove(opts)
+
+      assert struct.state == [:unchanged]
+      assert struct.message == "function not matched"
     end
 
     test "handles no modules found to remove, messages correctly" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      opts = [
+        source_module: ExFactorSampleModule,
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      assert_raise File.Error,
+                   "could not read file \"lib/ex_factor_sample_module.ex\": no such file or directory",
+                   fn ->
+                     Remover.remove(opts)
+                   end
+    end
+
+    test "when the module name doesn't match the module in the path" do
+      content = """
+      defmodule ExFactorUnmatchedModule do
+        @somedoc "This is somedoc"
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        def pub1(arg1) do
+          :ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      opts = [
+        source_module: ExFactorSampleModule,
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      assert_raise ArgumentError,
+                   "Module name: ExFactorSampleModule not detected in source path: 'test/tmp/source_module.ex'",
+                   fn ->
+                     Remover.remove(opts)
+                   end
     end
   end
 end

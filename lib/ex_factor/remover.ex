@@ -18,6 +18,7 @@ defmodule ExFactor.Remover do
     arity = Keyword.fetch!(opts, :arity)
     source_path = Keyword.get(opts, :source_path, path(source_module))
     dry_run = Keyword.get(opts, :dry_run, false)
+    guard_mismatch!(source_module, source_path)
 
     {_ast, block_contents} = Parser.all_functions(source_path)
     fns_to_remove = Enum.filter(block_contents, &(&1.name == source_function))
@@ -36,7 +37,22 @@ defmodule ExFactor.Remover do
       |> List.insert_at(function.start_line - 1, comment(source_function, arity, function.defn))
     end)
     |> Enum.join("\n")
-    |> then(fn str -> write_file(source_path, str, source_module, dry_run) end)
+    |> then(fn str -> write_file(fns_to_remove, source_path, str, source_module, dry_run) end)
+  end
+
+  defp guard_mismatch!(module_string, source_path) when is_binary(module_string) do
+    source_path
+    |> File.read!()
+    |> String.match?(~r/#{module_string}/)
+    |> unless do
+      raise ArgumentError,
+            "Module name: #{module_string} not detected in source path: '#{source_path}'"
+    end
+  end
+
+  defp guard_mismatch!(source_module, source_path) do
+    module_string = Module.split(source_module) |> Enum.join(".")
+    guard_mismatch!(module_string, source_path)
   end
 
   defp comment(name, arity, "@spec") do
@@ -56,7 +72,7 @@ defmodule ExFactor.Remover do
     """
   end
 
-  defp write_file(path, contents, source_module, true) do
+  defp write_file(_, path, contents, source_module, true) do
     %ExFactor{
       module: source_module,
       path: path,
@@ -66,7 +82,17 @@ defmodule ExFactor.Remover do
     }
   end
 
-  defp write_file(path, contents, source_module, _) do
+  defp write_file([], path, contents, source_module, _) do
+    %ExFactor{
+      module: source_module,
+      path: path,
+      state: [:unchanged],
+      message: "function not matched",
+      file_contents: contents
+    }
+  end
+
+  defp write_file(_, path, contents, source_module, _) do
     File.write(path, contents, [:write])
 
     %ExFactor{
