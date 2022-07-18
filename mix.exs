@@ -1,18 +1,25 @@
 defmodule ExFactor.MixProject do
   use Mix.Project
 
+  @name "ExFactor"
+  @source_url "https://github.com/ckochx/ex_factor"
+  @version "VERSION"
+    |> File.read!()
+    |> String.trim()
+
   def project do
     [
       app: :ex_factor,
-      name: "ExFactor",
-      version: "0.2.1",
+      name: @name,
+      version: @version,
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
+      docs: docs(),
       package: package(),
-      source_url: "https://github.com/ckochx/ex_factor"
+      source_url: @source_url
     ]
   end
 
@@ -31,14 +38,28 @@ defmodule ExFactor.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+    ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp package() do
     [
       licenses: ["CC-BY-NC-ND-4.0"],
-      links: %{"GitHub" => "https://github.com/ckochx/ex_factor"}
+      links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp docs do
+    [
+      logo: "assets/X.jpg",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      main: @name,
+      # extras: [
+      #   "CHANGELOG.md"
+      # ]
     ]
   end
 end

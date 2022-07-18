@@ -6,7 +6,7 @@ to a new file/module. At this time, ExFactor cannot change the function arity.
 
 ## BETA Warning
 
-ExFactor is still in active development and the API can and will change frequently!
+ExFactor is still in active development and the API can and may change frequently!
 
 Use at your peril, _for now._
 
@@ -24,6 +24,7 @@ Use at your peril, _for now._
 
 ## Roadmap TODO
 
+  - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
   - [] Write tests to ensure we can find modules across umbrella apps.
   - [] Add configuration hooks?
