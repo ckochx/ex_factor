@@ -23,10 +23,10 @@ Use at your peril, _for now._
   - [X] github actions, run test suite
   - [X] Add Mix.Task tests
   - [X] Add CLI tests
+  - [X] Add and configure CHANGELOG tracking.
 
 ## Roadmap TODO
 
-  - [] Add and configure CHANGELOG tracking.
   - [] Add test for one file containing more than one `defmodule`
   - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
@@ -40,9 +40,19 @@ Use at your peril, _for now._
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
 
+## Updates
+
+  See [CHANGELOG.md](https://github.com/ckochx/ex_factor/blob/main/CHANGELOG.md)
+
+  Using [changex](https://github.com/Gazler/changex) to track changes.
+
+### changex usage:
+
+    `mix changex.update --github ckochx/ex_factor`
+
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+[Hex](https://hex.pm/docs/publish), the package can be installed
 by adding `ex_factor` to your list of dependencies in `mix.exs`:
 
 ```elixir
@@ -53,9 +63,12 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
+Documentation is published on [HexDocs](https://hexdocs.pm). The docs can
 be found at [https://hexdocs.pm/ex_factor](https://hexdocs.pm/ex_factor).
 
 Alternate name:
   REFACTORY, just in case.
+
+## License
+
+  See [LICENSE](https://github.com/ckochx/ex_factor/blob/main/LICENSE)
