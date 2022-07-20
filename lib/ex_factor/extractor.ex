@@ -1,6 +1,8 @@
 defmodule ExFactor.Extractor do
   @moduledoc """
-  Documentation for `ExFactor.Extractor`.
+  `ExFactor.Extractor` finds the targetd function and places it in a different module.
+
+  Create the new (target) module path  and file if necessary.
   """
   alias ExFactor.Neighbors
   alias ExFactor.Parser

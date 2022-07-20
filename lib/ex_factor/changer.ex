@@ -1,6 +1,7 @@
 defmodule ExFactor.Changer do
   @moduledoc """
-  Documentation for `ExFactor.Changer`.
+  `ExFactor.Changer` find all references to the old (source) Mod.function/arity and update
+  the calls to use the new (target) Mod.function/arity.
   """
 
   alias ExFactor.Callers

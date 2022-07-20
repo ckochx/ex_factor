@@ -1,6 +1,8 @@
 defmodule ExFactor.Remover do
   @moduledoc """
-  Documentation for `ExFactor.Remover`.
+  `ExFactor.Remover` Remove the indicated function and its spec from it's original file.
+
+  It's safer to add rather than remove multiple attributes.
   """
   alias ExFactor.Parser
 

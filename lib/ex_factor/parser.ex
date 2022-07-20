@@ -1,11 +1,13 @@
 defmodule ExFactor.Parser do
   @moduledoc """
-  Documentation for `ExFactor.Parser`.
+  `ExFactor.Parser` we're making some assumptions that you're using this library within the
+  context of a Mix app and that every file contains one or more `defmodule` blocks.
   """
 
-  # @doc """
-  # Identify public and private functions from a module AST.
-  # """
+  @doc """
+  Parse the contents of a filepath in an Abstract Syntaxt Tree (AST) and
+  extraxct the block contents of the module at the filepath.
+  """
   def read_file(filepath) when is_binary(filepath) do
     contents = File.read!(filepath)
     list = String.split(contents, "\n")

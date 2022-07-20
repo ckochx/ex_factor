@@ -1,7 +1,6 @@
 defmodule ExFactor.Formatter do
   @moduledoc """
-  Documentation for `ExFactor.Formatter`.
-  Format a list of files
+  `ExFactor.Formatter` Format a list of files
   """
 
   def format([nil]), do: nil

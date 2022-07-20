@@ -27,6 +27,7 @@ Use at your peril, _for now._
 ## Roadmap TODO
 
   - [] Add and configure CHANGELOG tracking.
+  - [] Add test for one file containing more than one `defmodule`
   - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
   - [] update test file refs by CLI option
