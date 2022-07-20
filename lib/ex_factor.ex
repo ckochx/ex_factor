@@ -2,11 +2,12 @@ defmodule ExFactor do
   @moduledoc """
   `ExFactor` is a refactoring helper.
 
-  By identifying a Module, function name, and arity, it will identify all non-test usages
-  and extract them to a new Module.
+  By identifying a source module, function name, and arity, it will identify all non-test usages
+  and extract them to the target module.
 
-  If the Module exists, it adds the function to the end of the file and change all calls to the
-  new module's name.
+  If the target module exists, it adds the function to the end of the file and changes all calls to the
+  new module namespace. Otherwise ExFactor will create the target module at the target_path or
+  at a (resonably) expected location by the module namespace
   """
 
   _docp = "results struct"

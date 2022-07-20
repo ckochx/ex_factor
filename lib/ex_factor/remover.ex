@@ -66,7 +66,7 @@ defmodule ExFactor.Remover do
     #
     # Function: #{name}/#{arity} removed by ExFactor
     # ExFactor only removes the function itself
-    # Other artifacts, including docs, test references, and module-level comments
+    # Other artifacts such as test references and module-level comments
     # may remain for you to remove manually.
     #
     """
