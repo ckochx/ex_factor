@@ -60,15 +60,15 @@ defmodule ExFactor.ExtractorTest do
       ]
 
       Extractor.emplace(opts)
-
       file = File.read!(target_path)
-      assert file =~ "def(pub1(arg1))"
-      assert file =~ "defmodule(ExFactor.NewMod) do"
+
+      assert file =~ "def pub1(arg1) do"
+      assert file =~ "defmodule ExFactor.NewMod do"
       # includes additional attrs
-      assert file =~ "@spec(pub1(term()) :: term())"
-      assert file =~ "@somedoc(\"This is somedoc\")"
+      assert file =~ "@spec pub1(term()) :: term()"
+      assert file =~ "@somedoc \"This is somedoc\""
       # assert the added elements get flattened correctly
-      refute file =~ "[@somedoc(\"This is somedoc\"), "
+      refute file =~ "[@somedoc \"This is somedoc\", "
       # comments don't get moved
       refute file =~ "# a comment and no aliases"
       File.rm("test/tmp/source_module.ex")
@@ -102,8 +102,8 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!(target_path)
-      assert file =~ "def(pub1(arg1))"
-      assert file =~ "@moduledoc(\"This module created with ExFactor\")"
+      assert file =~ "def pub1(arg1)"
+      assert file =~ "@moduledoc \"This module created with ExFactor\""
     end
 
     test " with dry_run option, don't write the file." do
@@ -163,8 +163,8 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def(pub1(arg1))"
-      assert file =~ "defmodule(ExFactor.Tmp.TargetModule) do"
+      assert file =~ "def pub1(arg1)"
+      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
     end
 
     test "write the function into an existing module" do
@@ -201,7 +201,7 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def(refactor1(arg1)) do"
+      assert file =~ "def refactor1(arg1) do"
       assert file =~ "def pub_exists(arg_exists) do"
       assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
     end
@@ -243,7 +243,7 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def(refactor1(arg1)) do"
+      assert file =~ "def refactor1(arg1) do"
       assert file =~ "def pub_exists(arg_exists) do"
       assert file =~ "def pub_exists(:error) do"
       assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
@@ -291,8 +291,8 @@ defmodule ExFactor.ExtractorTest do
       Extractor.emplace(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def(refactor1(arg1)) do"
-      assert file =~ "def(refactor1([])) do"
+      assert file =~ "def refactor1(arg1) do"
+      assert file =~ "def refactor1([]) do"
       assert file =~ " @doc \"some docs\""
     end
 

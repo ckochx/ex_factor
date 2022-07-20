@@ -52,8 +52,8 @@ defmodule ExFactorTest do
       %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
 
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def(refactor1(arg1)) do"
-      assert file =~ "def(refactor1([])) do"
+      assert file =~ "def refactor1(arg1) do"
+      assert file =~ "def refactor1([]) do"
       assert file =~ " @doc \"some docs\""
       assert file =~ "def pub_exists(arg_exists) do"
 
@@ -108,8 +108,8 @@ defmodule ExFactorTest do
 
       # assert that the original files are unchanged
       file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      refute file =~ "def(refactor1(arg1)) do"
-      refute file =~ "def(refactor1([])) do"
+      refute file =~ "def refactor1(arg1) do"
+      refute file =~ "def refactor1([]) do"
 
       file = File.read!("lib/ex_factor/tmp/source_module.ex")
       assert file =~ "def refactor1(arg1) do"

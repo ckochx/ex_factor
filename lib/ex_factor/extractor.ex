@@ -61,8 +61,8 @@ defmodule ExFactor.Extractor do
         list = String.split(module_contents, "\n")
         {:ok, ast} = Code.string_to_quoted(module_contents, token_metadata: true)
 
-        {:defmodule, [do: [line: _begin_line], end: [line: end_line], closing: _, line: _], _} =
-          ast
+        {:defmodule, do_metadata, _} = ast
+        [line: end_line] = Keyword.fetch!(do_metadata, :end)
 
         insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
     end

@@ -4,8 +4,8 @@ defmodule ExFactor.MixProject do
   @name "ExFactor"
   @source_url "https://github.com/ckochx/ex_factor"
   @version "VERSION"
-    |> File.read!()
-    |> String.trim()
+           |> File.read!()
+           |> String.trim()
 
   def project do
     [
@@ -56,7 +56,7 @@ defmodule ExFactor.MixProject do
       logo: "assets/X.jpg",
       source_ref: "v#{@version}",
       source_url: @source_url,
-      main: @name,
+      main: @name
       # extras: [
       #   "CHANGELOG.md"
       # ]
