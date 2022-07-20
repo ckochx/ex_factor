@@ -2,18 +2,14 @@ defmodule ExFactor.ExtractorTest do
   use ExUnit.Case
   alias ExFactor.Extractor
 
-  setup_all do
+  setup do
     File.mkdir_p("test/tmp")
+    File.mkdir_p("lib/ex_factor/tmp")
 
     on_exit(fn ->
+      File.rm_rf("lib/ex_factor/tmp")
       File.rm_rf("test/tmp")
     end)
-  end
-
-  setup do
-    File.rm_rf("lib/ex_factor/tmp")
-    File.mkdir_p("lib/ex_factor/tmp")
-    :ok
   end
 
   describe "emplace/1" do
@@ -32,6 +28,45 @@ defmodule ExFactor.ExtractorTest do
     test "noop when no matching fns found in source" do
     end
 
+    test "create the dir path if necessary" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @somedoc "This is somedoc"
+        # a comment and no aliases
+        _docp = "here's an arbitrary module underscore"
+        @spec pub1(term()) :: term()
+        def pub1(arg1) do
+          :pub1_ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Test.NewModule",
+        source_module: "ExFactorSampleModule",
+        source_path: "test/tmp/source_module.ex",
+        source_function: :pub1,
+        arity: 1
+      ]
+
+      Extractor.emplace(opts)
+      file = File.read!("lib/ex_factor/test/new_module.ex")
+
+      assert file =~ "def pub1(arg1) do"
+      assert file =~ "defmodule ExFactor.Test.NewModule do"
+      # includes additional attrs
+      assert file =~ "@spec pub1(term()) :: term()"
+      assert file =~ "@somedoc \"This is somedoc\""
+      # assert the added elements get flattened correctly
+      refute file =~ "[@somedoc \"This is somedoc\", "
+      # comments don't get moved
+      refute file =~ "# a comment and no aliases"
+
+      File.rm_rf("lib/ex_factor/test")
+    end
+
     test "write a new file with the function" do
       content = """
       defmodule ExFactorSampleModule do
@@ -48,7 +83,6 @@ defmodule ExFactor.ExtractorTest do
       File.write("test/tmp/source_module.ex", content)
 
       target_path = "test/tmp/target_module.ex"
-      File.rm(target_path)
 
       opts = [
         target_path: target_path,
@@ -71,8 +105,6 @@ defmodule ExFactor.ExtractorTest do
       refute file =~ "[@somedoc \"This is somedoc\", "
       # comments don't get moved
       refute file =~ "# a comment and no aliases"
-      File.rm("test/tmp/source_module.ex")
-      File.rm("test/tmp/target_module.ex")
     end
 
     test "write a new file add a moduledoc comment" do
@@ -88,7 +120,6 @@ defmodule ExFactor.ExtractorTest do
       File.write("test/tmp/source_module.ex", content)
 
       target_path = "test/tmp/target_module.ex"
-      File.rm(target_path)
 
       opts = [
         target_path: target_path,
@@ -122,7 +153,6 @@ defmodule ExFactor.ExtractorTest do
       File.write("test/tmp/source_module.ex", content)
 
       target_path = "test/tmp/target_module.ex"
-      File.rm(target_path)
 
       opts = [
         target_path: target_path,

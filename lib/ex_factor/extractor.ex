@@ -83,7 +83,11 @@ defmodule ExFactor.Extractor do
   end
 
   defp write_file(target_path, contents, module, _dry_run) do
-    _ = File.write(target_path, contents, [:write])
+    target_path
+    |> Path.dirname()
+    |> File.mkdir_p!()
+
+    File.write!(target_path, contents, [:write])
 
     %{
       module: module,

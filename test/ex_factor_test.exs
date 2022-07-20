@@ -9,6 +9,16 @@ defmodule ExFactorTest do
     end)
   end
 
+  describe "path/1" do
+    test "convert a module name to a file path" do
+      assert "lib/test_module.ex" == ExFactor.path(TestModule)
+    end
+
+    test "convert a multi-atom module name to a file path" do
+      assert "lib/my/test/module_name.ex" == ExFactor.path(My.Test.ModuleName)
+    end
+  end
+
   describe "refactor/1" do
     test "it refactors the functions into a new module, specified in opts" do
       File.rm("lib/ex_factor/tmp/source_module.ex")
