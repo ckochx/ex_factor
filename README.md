@@ -29,13 +29,13 @@ Use at your peril, _for now._
   - [] Add and configure CHANGELOG tracking.
   - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
+  - [] update test file refs by CLI option
   - [] Write tests to ensure we can find modules across umbrella apps.
   - [] Add configuration hooks?
   - [] find dead functions
   - [] find module attrs and also move them?
   - [] find types referenced in the moved specs
   - [] find private functions references in refactored fn bodies.
-  - [] update test file refs by CLI option
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
 

@@ -39,7 +39,8 @@ defmodule ExFactor.MixProject do
 
   defp deps do
     [
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:changex, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
@@ -55,10 +56,11 @@ defmodule ExFactor.MixProject do
       logo: "assets/X.jpg",
       source_ref: "v#{@version}",
       source_url: @source_url,
-      main: @name
-      # extras: [
-      #   "CHANGELOG.md"
-      # ]
+      main: "readme",
+      extras: [
+        "README.md",
+        "CHANGELOG.md"
+      ]
     ]
   end
 end
