@@ -12,7 +12,7 @@ defmodule ExFactor.MixProject do
       app: :ex_factor,
       name: @name,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
