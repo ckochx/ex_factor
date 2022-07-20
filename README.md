@@ -20,10 +20,13 @@ Use at your peril, _for now._
   - [X] dry-run option
   - [X] CLI output, list files changed and created.
   - [X] format changes
-  - [X] guthub actions, run test suite
+  - [X] github actions, run test suite
+  - [X] Add Mix.Task tests
+  - [X] Add CLI tests
 
 ## Roadmap TODO
 
+  - [] Add and configure CHANGELOG tracking.
   - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
   - [] Write tests to ensure we can find modules across umbrella apps.
@@ -44,7 +47,7 @@ by adding `ex_factor` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_factor, "~> 0.2.1", only: [:dev]}
+    {:ex_factor, "~> 0.3", only: [:dev]}
   ]
 end
 ```

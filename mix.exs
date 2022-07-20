@@ -43,7 +43,6 @@ defmodule ExFactor.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp package() do
     [
       licenses: ["CC-BY-NC-ND-4.0"],

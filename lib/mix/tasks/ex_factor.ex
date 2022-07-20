@@ -69,7 +69,6 @@ defmodule Mix.Tasks.ExFactor do
 
   defp cli_output(map, opts) do
     verbose = Keyword.get(opts, :verbose, false)
-    # dry_run = Keyword.get(opts, :dryrun, false)
 
     format_entry(Map.get(map, :additions), "Additions", :light_cyan_background, verbose)
     format_entry(Map.get(map, :changes), "Changes", :light_green_background, verbose)
