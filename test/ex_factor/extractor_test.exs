@@ -26,6 +26,37 @@ defmodule ExFactor.ExtractorTest do
     end
 
     test "noop when no matching fns found in source" do
+      content = """
+      defmodule ExFactorSampleModule do
+        @spec pub1(term()) :: term()
+        def pub1(arg1) do
+          :pub1_ok
+        end
+      end
+      """
+
+      File.write("test/tmp/source_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Test.NewModule",
+        source_module: "ExFactorSampleModule",
+        source_path: "test/tmp/source_module.ex",
+        target_path: "test/tmp/target_module.ex",
+        source_function: :pub2,
+        arity: 1
+      ]
+
+      changes = Extractor.emplace(opts)
+
+      assert changes.state == [:unchanged]
+      assert changes.message == "function not detected in source."
+      assert changes.file_contents == ""
+      # file =
+      assert_raise File.Error,
+        "could not read file \"test/tmp/target_module.ex\": no such file or directory",
+        fn ->
+          File.read!("test/tmp/target_module.ex")
+        end
     end
 
     test "create the dir path if necessary" do
@@ -324,49 +355,6 @@ defmodule ExFactor.ExtractorTest do
       assert file =~ "def refactor1(arg1) do"
       assert file =~ "def refactor1([]) do"
       assert file =~ " @doc \"some docs\""
-    end
-
-    @tag :skip
-    # Need to implemnt this functionality
-    test "extract references to the function in the source module" do
-      content = """
-      defmodule ExFactorSampleModule do
-        def pub1(arg1) do
-          arg1
-        end
-
-        def pub2(arg2) do
-          pub1(arg2)
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        def pub_exists(arg_exists) do
-          :ok
-        end
-        def pub_exists(:error) do
-          :error
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
-      opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :pub1,
-        arity: 1
-      ]
-
-      Extractor.emplace(opts)
-
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      assert file =~ "def pub2(arg2) do\n    TargetModule.pub1(arg2)"
     end
   end
 end

@@ -46,6 +46,7 @@ defmodule ExFactor.MixProject do
 
   defp package() do
     [
+      description: description(),
       licenses: ["CC-BY-NC-ND-4.0"],
       links: %{"GitHub" => @source_url}
     ]

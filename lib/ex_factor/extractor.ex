@@ -74,30 +74,22 @@ defmodule ExFactor.Extractor do
 
   defp refactor_message, do: "#refactored function moved with ExFactor"
 
-  defp write_file(target_path, contents, module, true) do
-    %{
-      module: module,
-      path: target_path,
-      state: [:dry_run],
-      message: "--dry_run changes to make",
-      file_contents: contents
-    }
+  defp write_file(target_path, contents, target_module, true) do
+    output(target_path, contents, target_module, [:dry_run], "--dry_run changes to make")
   end
 
-  defp write_file(target_path, contents, module, _dry_run) do
+  defp write_file(target_path, contents, target_module, _dry_run) do
     target_path
     |> Path.dirname()
     |> File.mkdir_p!()
 
     File.write!(target_path, contents, [:write])
 
-    %{
-      module: module,
-      path: target_path,
-      state: [:additions_made],
-      message: "changes made",
-      file_contents: contents
-    }
+    output(target_path, contents, target_module, [:additions_made], "changes made")
+  end
+
+  defp insert_code(_list, _end_line, "", target_path, target_module, _dry_run) do
+    output(target_path, "", target_module, [:unchanged], "function not detected in source.")
   end
 
   defp insert_code(list, end_line, string_fns, target_path, target_module, dry_run) do
@@ -106,5 +98,15 @@ defmodule ExFactor.Extractor do
     |> List.insert_at(end_line, string_fns)
     |> Enum.join("\n")
     |> then(fn contents -> write_file(target_path, contents, target_module, dry_run) end)
+  end
+
+  defp output(path, contents, module, state, message) do
+    %{
+      module: module,
+      path: path,
+      state: state,
+      message: message,
+      file_contents: contents
+    }
   end
 end
