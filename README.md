@@ -24,6 +24,7 @@ Use at your peril, _for now._
   - [X] Add Mix.Task tests
   - [X] Add CLI tests
   - [X] Add and configure CHANGELOG tracking.
+  - [X] Support opt-out of format-ing
 
 ## Roadmap TODO
 

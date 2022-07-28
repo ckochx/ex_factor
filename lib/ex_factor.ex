@@ -36,38 +36,38 @@ defmodule ExFactor do
     # remove should be last (before format)
     removals = Remover.remove(opts)
 
-    format(%{additions: emplace, changes: changes, removals: removals}, dry_run)
+    format(%{additions: emplace, changes: changes, removals: removals}, dry_run, opts)
   end
 
   def path(module) do
     Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
 
-  defp format(%{path: nil} = struct, _dry_run), do: struct
+  defp format(%{path: nil} = struct, _dry_run, _format), do: struct
 
-  defp format(output, true), do: output
+  defp format(output, true, _format), do: output
 
-  defp format(%{additions: adds, changes: changes, removals: removals} = output, false) do
+  defp format(%{additions: adds, changes: changes, removals: removals} = output, false, opts) do
     %{
-      additions: format(adds),
-      changes: format(changes),
-      removals: format(removals)
+      additions: format(adds, opts),
+      changes: format(changes, opts),
+      removals: format(removals, opts)
     }
 
     output
   end
 
-  defp format(list) when is_list(list) do
+  defp format(list, opts) when is_list(list) do
     Enum.map(list, fn elem ->
-      format(elem)
+      format(elem, opts)
       Map.get_and_update(elem, :state, fn val -> {val, [:formatted | val]} end)
     end)
   end
 
-  defp format(%{state: [:unchanged]} = struct), do: struct
+  defp format(%{state: [:unchanged]} = struct, _opts), do: struct
 
-  defp format(struct) do
-    Formatter.format([struct.path])
+  defp format(struct, opts) do
+    Formatter.format([struct.path], opts)
     Map.get_and_update(struct, :state, fn val -> {val, [:formatted | val]} end)
   end
 end

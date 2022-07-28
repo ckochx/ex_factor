@@ -3,9 +3,13 @@ defmodule ExFactor.Formatter do
   `ExFactor.Formatter` Format a list of files
   """
 
-  def format([nil]), do: nil
+  def format(args, opts \\ [])
 
-  def format(args) do
-    Mix.Tasks.Format.run(args)
+  def format([nil], _opts), do: nil
+
+  def format(args, opts) do
+    if Keyword.get(opts, :format, true) do
+      Mix.Tasks.Format.run(args)
+    end
   end
 end

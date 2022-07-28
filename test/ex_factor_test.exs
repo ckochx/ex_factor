@@ -72,6 +72,54 @@ defmodule ExFactorTest do
       refute file =~ "def refactor1([]) do"
     end
 
+    test "it skips formatting when specified in opts" do
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
+
+      content = """
+      defmodule ExFactor.Tmp.SourceModule do
+        @doc "this is some documentation for refactor1/1"
+        def refactor1([]) do
+          :empty
+        end
+        def refactor1(arg1) do
+          arg1
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.TargetModule do
+           @doc "some docs"
+        def pub_exists(:error) do
+          :error
+        end
+        def pub_exists(arg_exists) do
+          arg_exists
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Tmp.TargetModule",
+        source_module: "ExFactor.Tmp.SourceModule",
+        source_function: :refactor1,
+        arity: 1,
+        format: false
+      ]
+
+      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
+
+      file = File.read!("lib/ex_factor/tmp/target_module.ex")
+
+      assert file =~ "\ndef refactor1(arg1) do"
+      assert file =~ "defmodule ExFactor.Tmp.TargetModule do\n     @doc \"some docs\""
+    end
+
     test "it returns the results of the dry_run changes" do
       File.rm("lib/ex_factor/tmp/source_module.ex")
       File.rm("lib/ex_factor/tmp/target_module.ex")

@@ -27,11 +27,19 @@ defmodule Mix.Tasks.ExFactor do
     - `:source_path` Specify an alternate (non-standard) path for the destination file.
     - `:dryrun` Don't write any updates, only return the built results.
     - `:verbose` (Default false) include the :state and :file_contents key values.
+    - `:format` (Default true) when false don't run the formatter
 
   Example Usage:
   ```
   mix ex_factor --module MyModule.ToChange --function fn_to_change
   --arity 2 --target YourModule.ChangeTo
+  ```
+
+  Example Usage:
+  ```
+  mix ex_factor --module MyModule.ToChange --function fn_to_change
+    --arity 2 --target YourModule.ChangeTo
+    --no-format --no-dryrun --no-verbose
   ```
   """
 
@@ -44,6 +52,7 @@ defmodule Mix.Tasks.ExFactor do
           arity: :integer,
           dryrun: :boolean,
           verbose: :boolean,
+          format: :boolean,
           function: :string,
           key: :string,
           module: :string,
