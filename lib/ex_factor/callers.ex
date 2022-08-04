@@ -54,6 +54,7 @@ defmodule ExFactor.Callers do
   defp mangle_list(list) do
     Enum.map(list, fn string ->
       [path, type] = String.split(string, " ")
+
       %{
         file: path,
         dependency_type: type

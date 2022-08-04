@@ -7,7 +7,10 @@ defmodule ExFactor.CallersTest do
       callers = Callers.callers(ExFactor.Parser)
 
       assert Enum.find(callers, fn caller -> caller.file == "lib/ex_factor/callers.ex" end)
-      %{} = support = Enum.find(callers, fn caller -> caller.file == "test/support/support.ex" end)
+
+      %{} =
+        support = Enum.find(callers, fn caller -> caller.file == "test/support/support.ex" end)
+
       assert support.caller_module == ExFactor.Support
       assert support.callee == {ExFactor.Parser, :all_functions, 1}
     end

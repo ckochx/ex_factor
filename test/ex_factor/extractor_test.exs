@@ -53,10 +53,10 @@ defmodule ExFactor.ExtractorTest do
       assert changes.file_contents == ""
       # file =
       assert_raise File.Error,
-        "could not read file \"test/tmp/target_module.ex\": no such file or directory",
-        fn ->
-          File.read!("test/tmp/target_module.ex")
-        end
+                   "could not read file \"test/tmp/target_module.ex\": no such file or directory",
+                   fn ->
+                     File.read!("test/tmp/target_module.ex")
+                   end
     end
 
     test "create the dir path if necessary" do

@@ -43,7 +43,13 @@ defmodule ExFactor.Changer do
 
   defp update_caller_groups([], opts) do
     source_module = Keyword.fetch!(opts, :source_module)
-    [%ExFactor{state: [:unchanged], message: "No additional references to source module: (#{source_module}) detected"}]
+
+    [
+      %ExFactor{
+        state: [:unchanged],
+        message: "No additional references to source module: (#{source_module}) detected"
+      }
+    ]
   end
 
   defp update_caller_module(callers, opts) do

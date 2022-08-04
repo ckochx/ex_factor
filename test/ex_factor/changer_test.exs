@@ -358,7 +358,10 @@ defmodule ExFactor.ChangerTest do
       ]
 
       [change] = Changer.change(opts)
-      assert change.message == "No additional references to source module: (ExFactor.Tmp.SourceModMissing) detected"
+
+      assert change.message ==
+               "No additional references to source module: (ExFactor.Tmp.SourceModMissing) detected"
+
       assert change.state == [:unchanged]
     end
 

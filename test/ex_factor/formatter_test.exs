@@ -35,7 +35,7 @@ defmodule ExFactor.FormatterTest do
       """
 
       File.write("test/tmp/test_module.ex", content)
-      Formatter.format(["test/tmp/test_module.ex"], [format: false])
+      Formatter.format(["test/tmp/test_module.ex"], format: false)
       {:ok, formatted_file} = File.read("test/tmp/test_module.ex")
       assert formatted_file =~ "# unindented line"
       assert formatted_file =~ "\n    # overindented line"
