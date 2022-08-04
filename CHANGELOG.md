@@ -1,3 +1,8 @@
+## 0.3.1
+
+* Bug fixes
+  * [ExFactor.Extractor] create path! for new modules
+
 # v0.3.0
 
 ## Bug Fixes

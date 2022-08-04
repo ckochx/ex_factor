@@ -49,12 +49,6 @@ Use at your peril, _for now._
 
   See [CHANGELOG.md](https://github.com/ckochx/ex_factor/blob/main/CHANGELOG.md)
 
-  Using [changex](https://github.com/Gazler/changex) to track changes.
-
-### changex usage:
-
-    `mix changex.update --github ckochx/ex_factor --format github`
-
 ## Installation
 
 [Hex](https://hex.pm/docs/publish), the package can be installed
