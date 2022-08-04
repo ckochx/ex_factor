@@ -56,6 +56,7 @@ defmodule Mix.Tasks.ExFactor do
           function: :string,
           key: :string,
           module: :string,
+          moduleonly: :boolean,
           source_path: :string,
           target: :string,
           target_path: :string
@@ -64,13 +65,22 @@ defmodule Mix.Tasks.ExFactor do
 
     parsed_opts
     |> options()
-    |> ExFactor.refactor()
+    |> choose_your_path()
     |> cli_output(parsed_opts)
+  end
+
+  defp choose_your_path(opts) do
+    if Keyword.get(opts, :moduleonly, false) do
+      ExFactor.refactor_module(opts)
+    else
+      opts
+      |> Keyword.put(:source_function, Keyword.fetch!(opts, :function))
+      |> ExFactor.refactor()
+    end
   end
 
   defp options(opts) do
     opts
-    |> Keyword.put(:source_function, Keyword.fetch!(opts, :function))
     |> Keyword.put(:source_module, Keyword.fetch!(opts, :module))
     |> Keyword.put(:target_module, Keyword.fetch!(opts, :target))
     |> Keyword.put(:dry_run, Keyword.get(opts, :dryrun, false))

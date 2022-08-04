@@ -16,12 +16,13 @@ defmodule ExFactor.CLITest do
       function: "pub1",
       arity: 1
     ]
+
     argv = OptionParser.to_argv(opts)
 
-    capture_io fn ->
+    capture_io(fn ->
       {_, exit_status} = System.cmd("mix", ["ex_factor" | argv])
       refute exit_status == 0
-    end
+    end)
   end
 
   test "with dry run" do
@@ -93,5 +94,35 @@ defmodule ExFactor.CLITest do
     assert exit_status == 0
     file = File.read!(target_path)
     assert file =~ "\n@spec pub1(term()) :: term()\ndef pub1(arg1) do\n  :pub1_ok\nend\nend"
+  end
+
+  test "with --moduleonly" do
+    File.mkdir_p("lib/ex_factor/tmp")
+
+    content = """
+    defmodule ExFactor.Module do
+      def pub1(arg1) do
+        ExFactorSampleModule.call_some_function(arg1)
+      end
+    end
+    """
+
+    File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+    opts = [
+      target: "ExFactor.NewMod",
+      module: "ExFactorSampleModule",
+      moduleonly: true
+    ]
+
+    argv = OptionParser.to_argv(opts)
+
+    {_cli_output, exit_status} = System.cmd("mix", ["ex_factor" | argv])
+    assert exit_status == 0
+    file = File.read!("lib/ex_factor/tmp/source_module.ex")
+    assert file =~ "alias ExFactor.NewMod"
+    assert file =~ "def pub1(arg1) do\n    NewMod.call_some_function(arg1)"
+
+    File.rm_rf("lib/ex_factor/tmp")
   end
 end

@@ -17,6 +17,7 @@ defmodule ExFactor.MixTaskTest do
         function: "pub1",
         arity: 1
       ]
+
       argv = OptionParser.to_argv(opts)
 
       assert_raise KeyError, "key :target not found in: #{inspect(opts)}", fn ->
@@ -51,7 +52,7 @@ defmodule ExFactor.MixTaskTest do
 
       argv = OptionParser.to_argv(opts)
 
-      capture_io fn ->  Mix.Tasks.ExFactor.run(argv) end
+      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
 
       file = File.read!(target_path)
 
@@ -89,7 +90,7 @@ defmodule ExFactor.MixTaskTest do
       ]
 
       argv = OptionParser.to_argv(opts)
-      capture_io fn ->  Mix.Tasks.ExFactor.run(argv) end
+      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
 
       file = File.read!(target_path)
       assert file =~ "def pub1(arg1)"
@@ -124,7 +125,7 @@ defmodule ExFactor.MixTaskTest do
 
       argv = OptionParser.to_argv(opts)
 
-      output = capture_io fn ->  Mix.Tasks.ExFactor.run(argv) end
+      output = capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
 
       # no new file gets written
       assert {:error, :enoent} = File.read(target_path)
@@ -177,12 +178,48 @@ defmodule ExFactor.MixTaskTest do
 
       argv = OptionParser.to_argv(opts)
 
-      capture_io fn ->  Mix.Tasks.ExFactor.run(argv) end
+      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
 
       file = File.read!(target_path)
       assert file =~ "def refactor1(arg1) do"
       assert file =~ "def refactor1([]) do"
       assert file =~ " @doc \"some docs\""
+    end
+
+    setup do
+      File.mkdir_p("lib/ex_factor/tmp")
+
+      on_exit(fn ->
+        File.rm_rf("lib/ex_factor/tmp")
+      end)
+    end
+
+    test "with --moduleonly" do
+      content = """
+      defmodule ExFactor.Module do
+        def pub1(arg1) do
+          ExFactorSampleModule.call_some_function(arg1)
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      opts = [
+        target: "ExFactor.NewMod",
+        module: "ExFactorSampleModule",
+        moduleonly: true
+      ]
+
+      argv = OptionParser.to_argv(opts)
+
+      capture_io(fn ->
+        Mix.Tasks.ExFactor.run(argv)
+      end)
+
+      file = File.read!("lib/ex_factor/tmp/source_module.ex")
+      assert file =~ "def pub1(arg1) do\n    NewMod.call_some_function(arg1)\n  end"
+      assert file =~ "alias ExFactor.NewMod"
     end
 
   end

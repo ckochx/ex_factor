@@ -174,4 +174,61 @@ defmodule ExFactorTest do
       assert file =~ "def refactor1([]) do"
     end
   end
+
+  describe "refactor_module/1" do
+    test "it refactors the refs to a module name only" do
+      File.rm("lib/ex_factor/tmp/source_module.ex")
+      File.rm("lib/ex_factor/tmp/target_module.ex")
+
+      content = """
+      defmodule ExFactor.Tmp.SourceModule do
+        @doc "this is some documentation for refactor1/1"
+        def refactor1([]) do
+          ExFactor.Tmp.TargetModule.pub_exists({})
+        end
+        def refactor1(arg1) do
+          ExFactor.Tmp.TargetModule.pub_exists(arg1)
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/source_module.ex", content)
+
+      content = """
+      defmodule ExFactor.Tmp.TargetModule do
+        @doc "some docs"
+        def pub_exists(:error) do
+          :error
+        end
+        def pub_exists(arg_exists) do
+          arg_exists
+        end
+      end
+      """
+
+      File.write("lib/ex_factor/tmp/target_module.ex", content)
+
+      opts = [
+        target_module: "ExFactor.Tmp.NewModule",
+        source_module: "ExFactor.Tmp.TargetModule"
+      ]
+
+      %{additions: additions, changes: [changes], removals: removals} =
+        ExFactor.refactor_module(opts)
+
+      assert additions == %ExFactor{}
+      assert removals == %ExFactor{}
+
+      assert %ExFactor{
+               module: ExFactor.Tmp.SourceModule,
+               path: "lib/ex_factor/tmp/source_module.ex",
+               state: [:alias_added, :changed, :changed]
+             } = changes
+
+      file = File.read!("lib/ex_factor/tmp/source_module.ex")
+      assert file =~ "alias ExFactor.Tmp.NewModule"
+      assert file =~ "NewModule.pub_exists({})"
+      assert file =~ "NewModule.pub_exists(arg1)"
+    end
+  end
 end

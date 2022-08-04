@@ -39,6 +39,21 @@ defmodule ExFactor do
     format(%{additions: emplace, changes: changes, removals: removals}, dry_run, opts)
   end
 
+  def refactor_module(opts) do
+    source_module = Keyword.fetch!(opts, :source_module)
+    target_module = Keyword.fetch!(opts, :target_module)
+    dry_run = Keyword.get(opts, :dry_run, false)
+
+    opts =
+      opts
+      |> Keyword.put_new(:target_path, path(target_module))
+      |> Keyword.put_new(:source_path, path(source_module))
+
+    changes = Changer.rename_module(opts)
+
+    format(%{additions: %ExFactor{}, changes: changes, removals: %ExFactor{}}, dry_run, opts)
+  end
+
   def path(module) do
     Path.join(["lib", Macro.underscore(module) <> ".ex"])
   end
