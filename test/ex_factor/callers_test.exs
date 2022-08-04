@@ -4,11 +4,12 @@ defmodule ExFactor.CallersTest do
 
   describe "callers/1" do
     test "it should report callers of a module" do
-      [one, _two, _three, _four, five] = Callers.callers(ExFactor.Parser)
+      callers = Callers.callers(ExFactor.Parser)
 
-      assert one.dependency_type == "(runtime)"
-      assert one.filepath == "lib/ex_factor/callers.ex"
-      assert five.filepath == "test/support/support.ex"
+      assert Enum.find(callers, fn caller -> caller.file == "lib/ex_factor/callers.ex" end)
+      %{} = support = Enum.find(callers, fn caller -> caller.file == "test/support/support.ex" end)
+      assert support.caller_module == ExFactor.Support
+      assert support.callee == {ExFactor.Parser, :all_functions, 1}
     end
 
     test "when no callers" do

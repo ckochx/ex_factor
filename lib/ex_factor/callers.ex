@@ -12,10 +12,11 @@ defmodule ExFactor.Callers do
   use `mix xref` list all the callers of a given module.
   """
   def callers(mod) do
-    capture_io(fn -> Mix.Tasks.Xref.run(["callers", mod]) end)
-    |> String.trim()
-    |> String.split("\n")
-    |> mangle_list()
+    Mix.Tasks.Xref.calls([])
+    |> Enum.filter(fn x ->
+      module = cast(mod)
+      match?({^module, _, _}, x.callee)
+    end)
   end
 
   def callers(mod, func, arity) do
@@ -53,7 +54,10 @@ defmodule ExFactor.Callers do
   defp mangle_list(list) do
     Enum.map(list, fn string ->
       [path, type] = String.split(string, " ")
-      %{filepath: path, dependency_type: type}
+      %{
+        file: path,
+        dependency_type: type
+      }
     end)
   end
 end

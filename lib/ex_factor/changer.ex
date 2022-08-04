@@ -7,6 +7,21 @@ defmodule ExFactor.Changer do
   alias ExFactor.Callers
 
   @doc """
+  Given all the Callers of a module, find the instances of usage of the module and refactor the
+  module reference to the new module. Respect any existing aliases.
+  """
+  def rename_module(opts) do
+    Mix.Tasks.Compile.Elixir.run([])
+    :timer.sleep(100)
+    source_module = Keyword.fetch!(opts, :source_module)
+
+    source_module
+    |> Callers.callers()
+    |> Enum.group_by(& &1.file)
+    |> update_caller_module(opts)
+  end
+
+  @doc """
   Given all the Callers to a module, find the instances of the target function and refactor the
   function module reference to the new module. Respect any existing aliases.
   """
@@ -29,6 +44,24 @@ defmodule ExFactor.Changer do
   defp update_caller_groups([], opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     [%ExFactor{state: [:unchanged], message: "No additional references to source module: (#{source_module}) detected"}]
+  end
+
+  defp update_caller_module(callers, opts) do
+    dry_run = Keyword.get(opts, :dry_run, false)
+
+    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
+      file_list =
+        File.read!(file)
+        |> String.split("\n")
+
+      grouped_callers
+      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
+        find_and_replace_module(acc, opts, line)
+      end)
+      |> maybe_add_import(opts)
+      |> maybe_add_alias(opts)
+      |> write_file(first.caller_module, file, dry_run)
+    end)
   end
 
   defp update_caller_groups(callers, opts) do
@@ -77,6 +110,43 @@ defmodule ExFactor.Changer do
 
         # match module name aliased :as
         String.match?(fn_line, ~r/#{source_alias_alt}\.#{source_function}/) ->
+          fn_line = String.replace(fn_line, source_alias_alt, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        true ->
+          {state, fn_line}
+      end
+
+    {new_state, List.replace_at(file_list, line - 1, new_line)}
+  end
+
+  defp find_and_replace_module({state, file_list}, opts, line) do
+    # opts values
+    source_module = Keyword.fetch!(opts, :source_module)
+    target_module = Keyword.fetch!(opts, :target_module)
+
+    # modified values
+    source_string = to_string(source_module)
+    source_modules = String.split(source_module, ".")
+    source_alias = Enum.at(source_modules, -1)
+    target_alias = preferred_alias(file_list, target_module)
+    source_alias_alt = find_alias_as(file_list, source_module)
+    fn_line = Enum.at(file_list, line - 1)
+
+    {new_state, new_line} =
+      cond do
+        # match full module name
+        String.match?(fn_line, ~r/#{source_string}/) ->
+          fn_line = String.replace(fn_line, source_module, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        # match aliased module name
+        String.match?(fn_line, ~r/#{source_alias}/) ->
+          fn_line = String.replace(fn_line, source_alias, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        # match module name aliased :as
+        String.match?(fn_line, ~r/#{source_alias_alt}/) ->
           fn_line = String.replace(fn_line, source_alias_alt, target_alias)
           {set_state(state, :changed), fn_line}
 
