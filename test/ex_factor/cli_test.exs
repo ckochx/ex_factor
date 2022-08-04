@@ -88,11 +88,10 @@ defmodule ExFactor.CLITest do
     ]
 
     argv = OptionParser.to_argv(opts)
-    |> IO.inspect(label: "")
 
     {_cli_output, exit_status} = System.cmd("mix", ["ex_factor" | argv])
     assert exit_status == 0
-    file = File.read!(target_path) |> IO.inspect(label: "")
+    file = File.read!(target_path)
     assert file =~ "\n@spec pub1(term()) :: term()\ndef pub1(arg1) do\n  :pub1_ok\nend\nend"
   end
 end

@@ -28,6 +28,12 @@ Use at your peril, _for now._
 
 ## Roadmap TODO
 
+  - [] Option to only change the module name throughout the project
+  - [] find dead functions
+  - [] find module attrs and also move them?
+  - [] find types referenced in the moved specs
+  - [] find private functions references in refactored fn bodies.
+  - [] git stage all changes?
   - [] Add test for one file containing more than one `defmodule`
   - [] Add test for nested defmodules.
   - [] How does this work with macro code? Does that even make sense as a case to handle?
@@ -35,10 +41,6 @@ Use at your peril, _for now._
   - [] update test file refs by CLI option
   - [] Write tests to ensure we can find modules across umbrella apps.
   - [] Add configuration hooks?
-  - [] find dead functions
-  - [] find module attrs and also move them?
-  - [] find types referenced in the moved specs
-  - [] find private functions references in refactored fn bodies.
   - [] ElixirLS integration for VSCode?
   - [] Write the module code to rename usages of the refactored function
 
