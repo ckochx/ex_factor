@@ -25,10 +25,11 @@ Use at your peril, _for now._
   - [X] Add CLI tests
   - [X] Add and configure CHANGELOG tracking.
   - [X] Support opt-out of format-ing
+  - [X] Option to only change the module name throughout the project
 
 ## Roadmap TODO
 
-  - [] Option to only change the module name throughout the project
+  - [] With module-only option, ensure we remove changed aliases
   - [] find dead functions
   - [] find module attrs and also move them?
   - [] find types referenced in the moved specs
@@ -52,7 +53,7 @@ Use at your peril, _for now._
 
 ### changex usage:
 
-    `mix changex.update --github ckochx/ex_factor`
+    `mix changex.update --github ckochx/ex_factor --format github`
 
 ## Installation
 
