@@ -1,3 +1,30 @@
+defmodule ExFactor.Tracer do
+  @trace_types ~w(import imported_function alias alias_expansion alias_reference require struct_expansion remote_function local_function)a
+  def trace({type, meta, module, name, arity}, env)  when type in @trace_types do
+    content = """
+    ExFactor.Tracer mix.exs
+    type: #{type}
+    meta: #{inspect(meta)}
+    traced_module: #{module}
+    name: #{name}
+    arity: #{arity}
+    filepath: #{env.file}
+    context_modules: #{inspect(env.context_modules)}
+    caller_module: #{env.module}
+    >>>>>>>>>>>>>>>>>>>>VVVVVVVVV<<<<<<<<<<<<<<<<<<<<<
+
+    """
+    File.mkdir_p!("./tmp")
+    File.touch!("./tmp/traces")
+    File.write!("./tmp/traces", content, [:append])
+    :ok
+  end
+
+  def trace(_event, _env) do
+    :ok
+  end
+end
+
 defmodule ExFactor.MixProject do
   use Mix.Project
 

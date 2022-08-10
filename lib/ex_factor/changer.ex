@@ -52,24 +52,6 @@ defmodule ExFactor.Changer do
     ]
   end
 
-  defp update_caller_module(callers, opts) do
-    dry_run = Keyword.get(opts, :dry_run, false)
-
-    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
-      file_list =
-        File.read!(file)
-        |> String.split("\n")
-
-      grouped_callers
-      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
-        find_and_replace_module(acc, opts, line)
-      end)
-      |> maybe_add_import(opts)
-      |> maybe_add_alias(opts)
-      |> write_file(first.caller_module, file, dry_run)
-    end)
-  end
-
   defp update_caller_groups(callers, opts) do
     dry_run = Keyword.get(opts, :dry_run, false)
 
@@ -81,6 +63,24 @@ defmodule ExFactor.Changer do
       grouped_callers
       |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
         find_and_replace_function(acc, opts, line)
+      end)
+      |> maybe_add_import(opts)
+      |> maybe_add_alias(opts)
+      |> write_file(first.caller_module, file, dry_run)
+    end)
+  end
+
+  defp update_caller_module(callers, opts) do
+    dry_run = Keyword.get(opts, :dry_run, false)
+
+    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
+      file_list =
+        File.read!(file)
+        |> String.split("\n")
+
+      grouped_callers
+      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
+        find_and_replace_module(acc, opts, line)
       end)
       |> maybe_add_import(opts)
       |> maybe_add_alias(opts)
