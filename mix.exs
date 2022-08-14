@@ -1,23 +1,7 @@
 defmodule ExFactor.Tracer do
   @trace_types ~w(import imported_function alias alias_expansion alias_reference require struct_expansion remote_function local_function)a
   def trace({type, meta, module, name, arity}, env)  when type in @trace_types do
-    ExFactor.Server.record(type, env.file, meta[:line], meta[:column], module, name, arity, env.context_modules, env.module)
-    # content = """
-    # ExFactor.Tracer mix.exs
-    # type: #{type}
-    # meta: #{inspect(meta)}
-    # traced_module: #{module}
-    # name: #{name}
-    # arity: #{inspect(arity)}
-    # filepath: #{env.file}
-    # context_modules: #{inspect(env.context_modules)}
-    # caller_module: #{env.module}
-
-    # """
-    # File.mkdir_p!("./tmp")
-    # File.touch!("./tmp/traces")
-    # File.write!("./tmp/traces", content, [:append])
-    :ok
+    ExFactor.Server.record(type, env.file, meta[:line], meta[:column], module, name, arity, env.module)
   end
 
   def trace(_event, _env) do
@@ -39,7 +23,7 @@ defmodule ExFactor.MixProject do
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
-      start_permanent: Mix.env() == :prod,
+      config_path: "./config/config.exs",
       deps: deps(),
       description: description(),
       docs: docs(),
