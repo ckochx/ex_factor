@@ -5,20 +5,18 @@ defmodule ExFactor.Changer do
   """
 
   alias ExFactor.Callers
+  alias ExFactor.Parser
 
   @doc """
   Given all the Callers of a module, find the instances of usage of the module and refactor the
   module reference to the new module. Respect any existing aliases.
   """
   def rename_module(opts) do
-    Mix.Tasks.Compile.Elixir.run([])
-    :timer.sleep(100)
     source_module = Keyword.fetch!(opts, :source_module)
 
     source_module
     |> Callers.callers()
-    |> Enum.group_by(& &1.file)
-    |> update_caller_module(opts)
+    |> update_caller_modules(opts)
   end
 
   @doc """
@@ -26,15 +24,16 @@ defmodule ExFactor.Changer do
   function module reference to the new module. Respect any existing aliases.
   """
   def change(opts) do
-    Mix.Tasks.Compile.Elixir.run([])
-    :timer.sleep(100)
+    # Mix.Tasks.Compile.Elixir.run([])
+    # :timer.sleep(100)
     source_module = Keyword.fetch!(opts, :source_module)
     source_function = Keyword.fetch!(opts, :source_function)
     arity = Keyword.fetch!(opts, :arity)
 
     source_module
     |> Callers.callers(source_function, arity)
-    |> Enum.group_by(& &1.file)
+    # |> IO.inspect(label: "callers")
+    # |> Enum.group_by(& &1.file)
     |> update_caller_groups(opts)
   end
 
@@ -70,21 +69,30 @@ defmodule ExFactor.Changer do
     end)
   end
 
-  defp update_caller_module(callers, opts) do
+  defp update_caller_modules(callers, opts) do
     dry_run = Keyword.get(opts, :dry_run, false)
+    source_module = Keyword.fetch!(opts, :source_module)
+    # source_path = Keyword.get(opts, :source_path)
 
-    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
+    mod = Callers.cast(source_module)
+    Enum.map(callers, fn {{file_path, module}, fn_calls} ->
       file_list =
-        File.read!(file)
+        file_path
+        |> File.read!()
         |> String.split("\n")
 
-      grouped_callers
-      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
+      matching_functions = Enum.filter(fn_calls, fn
+        {_, _, _, ^mod, _, _} -> true
+        _ -> false
+      end)
+      |> Enum.reduce({[:unchanged], file_list}, fn {_, line, _, _, _, _}, acc ->
         find_and_replace_module(acc, opts, line)
       end)
+      # |> IO.inspect(label: "FUNS")
       |> maybe_add_import(opts)
       |> maybe_add_alias(opts)
-      |> write_file(first.caller_module, file, dry_run)
+      |> write_file(module, file_path, dry_run)
+
     end)
   end
 
