@@ -2,6 +2,7 @@ defmodule ExFactor.Neighbors do
   @moduledoc """
   Documentation for `ExFactor.Neighbors`.
   """
+  @excluded_neighbors ~w(alias use import require)a
 
   @doc """
   Walk the AST and find all the elements before the target function and the previous function.
@@ -41,7 +42,7 @@ defmodule ExFactor.Neighbors do
     {[], acc}
   end
 
-  defp eval_elem({type, _, _}, {pending, acc}, _name, _artiy) when type in [:alias] do
+  defp eval_elem({type, _, _}, {pending, acc}, _name, _artiy) when type in @excluded_neighbors do
     {pending, acc}
   end
 

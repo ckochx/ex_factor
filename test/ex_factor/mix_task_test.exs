@@ -3,10 +3,10 @@ defmodule ExFactor.MixTaskTest do
   import ExUnit.CaptureIO
 
   setup do
-    File.mkdir_p("test/tmp")
+    File.mkdir_p("lib/ex_factor/tmp")
 
     on_exit(fn ->
-      File.rm_rf("test/tmp")
+      File.rm_rf("lib/ex_factor/tmp")
     end)
   end
 
@@ -26,45 +26,45 @@ defmodule ExFactor.MixTaskTest do
     end
 
     test "write a new file with the function" do
-      content = """
-      defmodule ExFactorSampleModule do
-        @somedoc "This is somedoc"
-        # a comment and no aliases
-        _docp = "here's an arbitrary module underscore"
-        @spec pub1(term()) :: term()
-        def pub1(arg1) do
-          :pub1_ok
-        end
-      end
-      """
+      # content = """
+      # defmodule ExFactorSampleModule do
+      #   @somedoc "This is somedoc"
+      #   # a comment and no aliases
+      #   _docp = "here's an arbitrary module underscore"
+      #   @spec pub1(term()) :: term()
+      #   def pub1(arg1) do
+      #     :pub1_ok
+      #   end
+      # end
+      # """
 
-      File.write("test/tmp/source_module.ex", content)
-      target_path = "test/tmp/target_module.ex"
+      # File.write("test/tmp/source_module.ex", content)
+      # target_path = "test/tmp/target_module.ex"
 
       opts = [
-        target_path: target_path,
-        target: "ExFactor.NewMod",
-        module: "ExFactorSampleModule",
-        source_path: "test/tmp/source_module.ex",
-        function: :pub1,
-        arity: 1
+        target: "ExFactor.Tmp.NeighborsMoveOut",
+        module: "ExFactor.Neighbors",
+        function: :wakl,
+        arity: 3,
+        dry_run: true
       ]
 
       argv = OptionParser.to_argv(opts)
 
       capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
+      |> IO.inspect(label: "ExFactor.run io")
 
-      file = File.read!(target_path)
+      # file = File.read!(target_path)
 
-      assert file =~ "def pub1(arg1) do"
-      assert file =~ "defmodule ExFactor.NewMod do"
-      # includes additional attrs
-      assert file =~ "@spec pub1(term()) :: term()"
-      assert file =~ "@somedoc \"This is somedoc\""
-      # assert the added elements get flattened correctly
-      refute file =~ "[@somedoc \"This is somedoc\", "
-      # comments don't get moved
-      refute file =~ "# a comment and no aliases"
+      # assert file =~ "def pub1(arg1) do"
+      # assert file =~ "defmodule ExFactor.NewMod do"
+      # # includes additional attrs
+      # assert file =~ "@spec pub1(term()) :: term()"
+      # assert file =~ "@somedoc \"This is somedoc\""
+      # # assert the added elements get flattened correctly
+      # refute file =~ "[@somedoc \"This is somedoc\", "
+      # # comments don't get moved
+      # refute file =~ "# a comment and no aliases"
     end
 
     test "write a new file add a moduledoc comment" do

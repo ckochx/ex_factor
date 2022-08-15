@@ -1,8 +1,8 @@
 defmodule ExFactor.Traces do
   def setup do
     Code.compiler_options(parser_options: [columns: true])
-    ExFactor.Tracer = Code.ensure_loaded!(ExFactor.Tracer)
     ExFactor.Server = Code.ensure_loaded!(ExFactor.Server)
+    ExFactor.Tracer = Code.ensure_loaded!(ExFactor.Tracer)
 
     _ = ExFactor.Server.start_link(__MODULE__)
   end

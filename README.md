@@ -26,20 +26,21 @@ Use at your peril, _for now._
   - [X] Add and configure CHANGELOG tracking.
   - [X] Support opt-out of format-ing
   - [X] Option to only change the module name throughout the project
+  - [X] update code to rely on compilation tracers, instead of XREF
+  - [X] With module-only option, ensure we remove changed aliases
 
 ## Roadmap TODO
 
-  - [] With module-only option, ensure we remove changed aliases
+  - [] Add test for one file containing more than one `defmodule`
+  - [] Add test for nested defmodules.
+  - [] update test file refs by CLI option
   - [] find dead functions
   - [] find module attrs and also move them?
   - [] find types referenced in the moved specs
   - [] find private functions references in refactored fn bodies.
   - [] git stage all changes?
-  - [] Add test for one file containing more than one `defmodule`
-  - [] Add test for nested defmodules.
   - [] How does this work with macro code? Does that even make sense as a case to handle?
   - [] Update .exs files too?
-  - [] update test file refs by CLI option
   - [] Write tests to ensure we can find modules across umbrella apps.
   - [] Add configuration hooks?
   - [] ElixirLS integration for VSCode?
