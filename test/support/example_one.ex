@@ -1,4 +1,4 @@
-defmodule ExFactor.Support do
+defmodule ExFactor.Support.ExampleOne do
   @moduledoc """
   Support module for `ExFactor` testing.
   """
