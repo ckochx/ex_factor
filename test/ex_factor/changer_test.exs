@@ -8,7 +8,7 @@ defmodule ExFactor.ChangerTest do
     :ok
   end
 
-  describe "rename_module/1" do
+  describe "change/1" do
     test "it renames all the instances of a module" do
       opts = [
         target_module: "ExFactor.Modified.Parser",
@@ -16,95 +16,31 @@ defmodule ExFactor.ChangerTest do
         dry_run: true
       ]
 
-      changes = Changer.rename_module(opts)
+      changes = Changer.change(opts)
 
       assert %ExFactor{} = change = Enum.find(changes, &(&1.module == ExFactor.Remover))
       assert [{ExFactor.Remover, _bin}] = Code.compile_string(change.file_contents)
     end
-  end
 
-  describe "change/1" do
     test "it finds all the callers of a module, function, and arity, and updates the calls to the new module" do
-      content = """
-        defmodule ExFactor.Tmp.SourceMod do
-          @moduledoc "
-          This is a multiline moduedoc
-          "
-          @doc "this is some documentation for refactor1/1"
-          def refactor1([]) do
-            :empty
-          end
-          def refactor1(arg1) do
-            {:ok, arg1}
-          end
-        end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.CallerModule do
-        @moduledoc \"\"\"
-        This is a multiline moduedoc.
-        Its in the caller module
-        \"\"\"
-        alias ExFactor.Tmp.SourceMod
-        alias ExFactor.Tmp.SourceMod.Other
-        def pub1(arg_a) do
-          SourceMod.refactor1(arg_a)
-        end
-        def pub2, do: Other
-
-        def pub3(arg_a) do
-          SourceMod.refactor1(arg_a)
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/caller_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.CallerTwoModule do
-        alias ExFactor.Tmp.SourceMod
-        def pub1(arg_a) do
-          SourceMod.refactor1(arg_a)
-        end
-        def pub2, do: Enum
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/caller_two_module.ex", content)
-
       opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceMod",
-        source_function: :refactor1,
-        arity: 1
+        target_module: "ExFactor.Modified.Parser",
+        source_module: "ExFactor.Parser",
+        source_function: "read_file",
+        arity: 1,
+        dry_run: true
       ]
 
       changes = Changer.change(opts)
 
-      caller = File.read!("lib/ex_factor/tmp/caller_module.ex")
-      assert caller =~ "alias ExFactor.Tmp.TargetModule"
-      # ensure we don't match dumbly
-      assert caller =~ "alias ExFactor.Tmp.SourceMod.Other"
-      refute caller =~ "alias ExFactor.Tmp.TargetModule.Other"
-      # assert the alias doesn't get spliced into the moduledoc
-      refute caller =~ "Its in the caller module\nalias ExFactor.Tmp.TargetModule\n  \""
-      assert caller =~ "TargetModule.refactor1(arg_a)"
-      # asser the function uses the alias
-      refute caller =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
-      assert caller =~ "def pub3(arg_a) do\n    TargetModule.refactor1(arg_a)"
+      changed_modules = changes
+      |> Enum.map(& &1.module)
+      |> Enum.sort()
 
-      caller_two = File.read!("lib/ex_factor/tmp/caller_two_module.ex")
-      assert caller_two =~ "alias ExFactor.Tmp.TargetModule"
-      # ensure we don't match dumbly
-      assert caller_two =~ "TargetModule.refactor1(arg_a)"
-      # asser the function uses the alias
-      refute caller_two =~ "ExFactor.Tmp.TargetModule.refactor1(arg_a)"
+      assert changed_modules == [ExFactor.Extractor, ExFactor.Remover]
 
-      assert Enum.find(changes, &(&1.path == "lib/ex_factor/tmp/caller_module.ex"))
-      assert Enum.find(changes, &(&1.path == "lib/ex_factor/tmp/caller_two_module.ex"))
+      assert %ExFactor{} = change = Enum.find(changes, &(&1.module == ExFactor.Remover))
+      assert [{ExFactor.Remover, _bin}] = Code.compile_string(change.file_contents)
     end
 
     test "only add alias entry if it's missing" do

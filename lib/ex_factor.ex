@@ -49,7 +49,7 @@ defmodule ExFactor do
       |> Keyword.put_new(:target_path, path(target_module))
       |> Keyword.put_new(:source_path, path(source_module))
 
-    changes = Changer.rename_module(opts)
+    changes = Changer.change(opts)
 
     format(%{additions: %ExFactor{}, changes: changes, removals: %ExFactor{}}, dry_run, opts)
   end
