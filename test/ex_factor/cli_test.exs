@@ -44,8 +44,8 @@ defmodule ExFactor.CLITest do
 
   test "with --no-format" do
     opts = [
-      module: "ExFactor.Support.ExampleFive",
-      sourcepath: "test/support/example_five.ex",
+      module: "ExFactor.Support.ExampleSeven",
+      sourcepath: "test/support/example_seven.ex",
       targetpath: "test/support/example_six.ex",
       target: "ExFactor.Modified.ExampleSix",
       function: :all_funcs,
@@ -60,38 +60,6 @@ defmodule ExFactor.CLITest do
     assert exit_status == 0
 
     assert cli_output =~ "Message: --dry_run changes to make"
-
-    # content = """
-    # defmodule ExFactorSampleModule do
-    #   @somedoc "This is somedoc"
-    #   # a comment and no aliases
-    #   _docp = "here's an arbitrary module underscore"
-    #   @spec pub1(term()) :: term()
-    #   def pub1(arg1) do
-    #     :pub1_ok
-    #   end
-    # end
-    # """
-
-    # File.write("test/tmp/source_module.ex", content)
-    # target_path = "test/tmp/target_module.ex"
-
-    # opts = [
-    #   target_path: target_path,
-    #   target: "ExFactor.NewMod",
-    #   module: "ExFactorSampleModule",
-    #   source_path: "test/tmp/source_module.ex",
-    #   function: :pub1,
-    #   arity: 1,
-    #   format: false
-    # ]
-
-    # argv = OptionParser.to_argv(opts)
-
-    # {_cli_output, exit_status} = System.cmd("mix", ["ex_factor" | argv])
-    # assert exit_status == 0
-    # file = File.read!(target_path)
-    # assert file =~ "\n@spec pub1(term()) :: term()\ndef pub1(arg1) do\n  :pub1_ok\nend\nend"
   end
 
   test "with --moduleonly" do

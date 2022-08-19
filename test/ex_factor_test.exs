@@ -20,6 +20,33 @@ defmodule ExFactorTest do
   end
 
   describe "refactor/1" do
+    test "works with another one-liner fn" do
+      opts = [
+        source_module: "ExFactor.Support.ExampleSeven",
+        source_path: "test/support/example_seven.ex",
+        target_path: "test/support/example_six.ex",
+        target_module: "ExFactor.Modified.ExampleSix",
+        source_function: :all_functions,
+        arity: 1,
+        dry_run: true
+      ]
+      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
+    end
+
+    test "works with a one-liner fn" do
+      opts = [
+        source_module: "ExFactor.Support.ExampleFive",
+        source_path: "test/support/example_five.ex",
+        target_path: "test/support/example_six.ex",
+        target_module: "ExFactor.Modified.ExampleSix",
+        source_function: :all_funcs,
+        arity: 1,
+        dry_run: true
+      ]
+      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
+
+
+    end
     test "it refactors the functions into a new module, specified in opts" do
       File.rm("lib/ex_factor/tmp/source_module.ex")
       File.rm("lib/ex_factor/tmp/target_module.ex")
@@ -177,40 +204,10 @@ defmodule ExFactorTest do
 
   describe "refactor_module/1" do
     test "it refactors the refs to a module name only" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          ExFactor.Tmp.TargetModule.pub_exists({})
-        end
-        def refactor1(arg1) do
-          ExFactor.Tmp.TargetModule.pub_exists(arg1)
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @doc "some docs"
-        def pub_exists(:error) do
-          :error
-        end
-        def pub_exists(arg_exists) do
-          arg_exists
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
       opts = [
-        target_module: "ExFactor.Tmp.NewModule",
-        source_module: "ExFactor.Tmp.TargetModule"
+        target_module: "ExFactor.Tmp.My.Neughbors.Moved",
+        source_module: "ExFactor.Neighbors",
+        dry_run: true
       ]
 
       %{additions: additions, changes: [changes], removals: removals} =
@@ -220,15 +217,10 @@ defmodule ExFactorTest do
       assert removals == %ExFactor{}
 
       assert %ExFactor{
-               module: ExFactor.Tmp.SourceModule,
-               path: "lib/ex_factor/tmp/source_module.ex",
-               state: [:alias_added, :changed, :changed]
+               module: ExFactor.Extractor,
+               path: "lib/ex_factor/extractor.ex",
+               state: [:dry_run, :alias_added, :changed, :changed]
              } = changes
-
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      assert file =~ "alias ExFactor.Tmp.NewModule"
-      assert file =~ "NewModule.pub_exists({})"
-      assert file =~ "NewModule.pub_exists(arg1)"
     end
   end
 end
