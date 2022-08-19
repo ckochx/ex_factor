@@ -28,7 +28,7 @@ defmodule ExFactor.Remover do
 
     Enum.reduce(fns_to_remove, line_list, fn function, acc ->
       delete_range =
-        function.start_line..function.end_line
+        function.start_line..get_end_line(function)
         |> Enum.to_list()
         |> Enum.reverse()
 
@@ -40,6 +40,15 @@ defmodule ExFactor.Remover do
     end)
     |> Enum.join("\n")
     |> then(fn str -> write_file(fns_to_remove, source_path, str, source_module, dry_run) end)
+  end
+
+  defp get_end_line(function) do
+    function
+    |> Map.get(:end_line, :unkown)
+    |> case do
+      :unknown -> function.start_line
+      line -> line
+    end
   end
 
   defp guard_mismatch!(module_string, source_path) when is_binary(module_string) do
