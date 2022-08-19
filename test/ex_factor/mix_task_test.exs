@@ -44,27 +44,17 @@ defmodule ExFactor.MixTaskTest do
       opts = [
         target: "ExFactor.Tmp.NeighborsMoveOut",
         module: "ExFactor.Neighbors",
-        function: :wakl,
+        function: :walk,
         arity: 3,
         dry_run: true
       ]
 
       argv = OptionParser.to_argv(opts)
 
-      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
-      |> IO.inspect(label: "ExFactor.run io")
-
-      # file = File.read!(target_path)
-
-      # assert file =~ "def pub1(arg1) do"
-      # assert file =~ "defmodule ExFactor.NewMod do"
-      # # includes additional attrs
-      # assert file =~ "@spec pub1(term()) :: term()"
-      # assert file =~ "@somedoc \"This is somedoc\""
-      # # assert the added elements get flattened correctly
-      # refute file =~ "[@somedoc \"This is somedoc\", "
-      # # comments don't get moved
-      # refute file =~ "# a comment and no aliases"
+      run_message = capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
+      # |> IO.inspect(label: "ExFactor.run io")
+      assert run_message =~ "Module: ExFactor.Tmp.NeighborsMoveOut"
+      assert run_message =~ "Path: lib/ex_factor/tmp/neighbors_move_out.ex"
     end
 
     test "write a new file add a moduledoc comment" do

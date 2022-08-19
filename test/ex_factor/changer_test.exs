@@ -41,8 +41,6 @@ defmodule ExFactor.ChangerTest do
       opts = [
         target_module: "ExFactor.Modified.NotCallers",
         source_module: "ExFactor.Callers",
-        # source_function: "read_file",
-        # arity: 1,
         dry_run: true
       ]
 
