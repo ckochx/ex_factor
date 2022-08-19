@@ -34,7 +34,7 @@ defmodule ExFactor.Parser do
   def all_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted([:line, token_metadata: true, columns: true])
     |> all_functions()
   end
 
@@ -51,7 +51,7 @@ defmodule ExFactor.Parser do
   def public_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted([:line, token_metadata: true, columns: true])
     |> public_functions()
   end
 
@@ -67,7 +67,7 @@ defmodule ExFactor.Parser do
   def private_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted([:line, token_metadata: true, columns: true])
     |> private_functions()
   end
 
