@@ -7,9 +7,15 @@ defmodule ExFactor.Formatter do
 
   def format([nil], _opts), do: nil
 
-  def format(args, opts) do
+  def format(paths, opts) do
     if Keyword.get(opts, :format, true) do
-      Mix.Tasks.Format.run(args)
+      Enum.map(paths, fn path ->
+        path
+        |> Code.format_file!()
+        |> then(fn contents ->
+          File.write!(path, contents, [:write])
+        end)
+      end)
     end
   end
 end
