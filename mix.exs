@@ -48,6 +48,7 @@ defmodule ExFactor.MixProject do
 
   defp deps do
     [
+      {:changex, ">= 0.0.0", only: :dev, runtime: false, optional: true, app: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false, optional: true, app: false}
     ]
   end
