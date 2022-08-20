@@ -50,6 +50,11 @@ Use at your peril, _for now._
 
   See [CHANGELOG.md](https://github.com/ckochx/ex_factor/blob/main/CHANGELOG.md)
 
+  Updating the changelog. (Uses `auto-changelog`)
+  https://github.com/cookpete/auto-changelog
+
+  `auto-changelog --breaking-pattern "BREAKING CHANGE"`
+
 ## Installation
 
 [Hex](https://hex.pm/docs/publish), the package can be installed
