@@ -35,18 +35,24 @@ defmodule ExFactorTest do
 
     test "works with a one-liner fn" do
       opts = [
-        source_module: "ExFactor.Support.ExampleFive",
-        source_path: "test/support/example_five.ex",
+        source_module: "ExFactor.Formatter",
         target_path: "test/support/example_six.ex",
         target_module: "ExFactor.Modified.ExampleSix",
-        source_function: :all_funcs,
-        arity: 1,
+        source_function: :format,
+        arity: 2,
         dry_run: true
       ]
-      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
+      %{additions: additions, changes: changes, removals: removals} = ExFactor.refactor(opts)
+      # |> IO.inspect(label: "changes")
 
+      assert removals.module == "ExFactor.Formatter"
+      assert additions.module == "ExFactor.Modified.ExampleSix"
+      assert additions.path == "test/support/example_six.ex"
 
+      five = Enum.find(changes, &(&1.module ==  ExFactor.Support.ExampleFive))
+      assert five.file_contents =~ "defdelegate format(args, opts \\\\ []), to: ExampleSix"
     end
+
     test "it refactors the functions into a new module, specified in opts" do
       File.rm("lib/ex_factor/tmp/source_module.ex")
       File.rm("lib/ex_factor/tmp/target_module.ex")

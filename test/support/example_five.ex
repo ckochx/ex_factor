@@ -15,6 +15,8 @@ defmodule ExFactor.Support.ExampleFive do
     IO.puts "A functions"
   end
 
+  defdelegate format(args, opts \\ []), to: ExFactor.Formatter
+
   def a_third_func(path) do
     path
     |> IO.puts()

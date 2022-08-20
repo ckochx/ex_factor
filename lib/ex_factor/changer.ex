@@ -111,6 +111,18 @@ defmodule ExFactor.Changer do
           fn_line = String.replace(fn_line, source_alias_alt, target_alias)
           {set_state(state, :changed), fn_line}
 
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_string}/) ->
+          fn_line = String.replace(fn_line, source_string, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_alias}/) ->
+          fn_line = String.replace(fn_line, source_alias, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_alias_alt}/) ->
+          fn_line = String.replace(fn_line, source_alias_alt, target_alias)
+          {set_state(state, :changed), fn_line}
+
         true ->
           {state, fn_line}
       end
