@@ -27,12 +27,12 @@ Use at your peril, _for now._
   - [X] Option to only change the module name throughout the project
   - [X] update code to rely on compilation tracers, instead of XREF
   - [X] With module-only option, ensure we remove changed aliases
-  - [] defdelegate
+  - [X] Add and configure CHANGELOG tracking.
+  - [X] defdelegate
 
 ## Roadmap TODO
 
   - [] find private functions references in refactored fn bodies.
-  - [] Add and configure CHANGELOG tracking.
   - [] Add test for one file containing more than one `defmodule`
   - [] Add test for nested defmodules.
   - [] update test file refs by CLI option
