@@ -45,7 +45,7 @@ defmodule ExFactor.Extractor do
     case File.exists?(target_path) do
       true ->
         {ast, list} = Parser.read_file(target_path)
-        {:defmodule, [do: [line: _begin_line], end: [line: end_line], line: _], _} = ast
+        {:defmodule, [do: [line: _begin_line, column: _], end: [line: end_line, column: _], line: _, column: _], _} = ast
 
         insert_code(list, end_line, string_fns, target_path, target_module, dry_run)
 

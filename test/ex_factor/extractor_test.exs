@@ -203,158 +203,61 @@ defmodule ExFactor.ExtractorTest do
     end
 
     test "write a new file with the function, infer some defaults" do
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
-        def pub1(arg1) do
-          :ok
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
       opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :pub1,
-        arity: 1
+        target_module: "ExFactor.Support.TargetModule",
+        source_path: "test/support/example_five.ex",
+        # target_path: "test/support/example_seven.ex",
+        source_module: "ExFactor.Support.ExampleFive",
+        source_function: :a_third_func,
+        arity: 1,
+        dry_run: true
       ]
 
-      Extractor.emplace(opts)
+      extracts = Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def pub1(arg1)"
-      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
+      assert extracts.path == "lib/ex_factor/support/target_module.ex"
+      assert extracts.module == "ExFactor.Support.TargetModule"
+      assert extracts.file_contents =~ "defmodule ExFactor.Support.TargetModule do"
     end
 
-    test "write the function into an existing module" do
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
-        def refactor1(arg1) do
-          :ok
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @somedoc "This is somedoc TargetModule"
-        # this is a comment, it will get elided
-        def pub_exists(arg_exists) do
-          :ok
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
+    test "write a function, into an existing module" do
       opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
-        arity: 1
+        target_module: "ExFactor.Support.ExampleSeven",
+        source_path: "test/support/example_five.ex",
+        target_path: "test/support/example_seven.ex",
+        source_module: "ExFactor.Support.ExampleFive",
+        source_function: :a_third_func,
+        arity: 1,
+        dry_run: true
       ]
 
-      Extractor.emplace(opts)
+      changes = Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def refactor1(arg1) do"
-      assert file =~ "def pub_exists(arg_exists) do"
-      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
+      file = changes.file_contents
+      assert changes.module == "ExFactor.Support.ExampleSeven"
+      assert changes.path == "test/support/example_seven.ex"
+      assert file =~ "def a_third_func(path) do"
+      assert file =~ "|> IO.inspect()"
     end
 
-    test "write multiple functions, into an existing module" do
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
-        def refactor1(arg1) do
-          :ok
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @somedoc "This is somedoc TargetModule"
-        # this is a comment, it will get elided
-        def pub_exists(arg_exists) do
-          :ok
-        end
-        def pub_exists(:error) do
-          :error
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
+    test "write multiple functions and their docs, into a new module" do
       opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
-        arity: 1
+        target_module: "ExFactor.Support.ExampleEight",
+        source_path: "test/support/example_five.ex",
+        target_path: "test/support/example_eight.ex",
+        source_module: "ExFactor.Support.ExampleFive",
+        source_function: :a_third_func,
+        arity: 1,
+        dry_run: true
       ]
 
-      Extractor.emplace(opts)
+      changes = Extractor.emplace(opts)
 
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def refactor1(arg1) do"
-      assert file =~ "def pub_exists(arg_exists) do"
-      assert file =~ "def pub_exists(:error) do"
-      assert file =~ "defmodule ExFactor.Tmp.TargetModule do"
-    end
-
-    test "write multiple functions and their docs, into an existing module" do
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @somedoc "This is somedoc"
-        @doc "this is some documentation for refactor1/1"
-        def refactor1(arg1) do
-          :ok
-        end
-        def refactor1([]) do
-          :empty
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @moduledoc false
-        @somedoc "This is somedoc TargetModule"
-        @doc "some docs"
-        def pub_exists(arg_exists) do
-          :ok
-        end
-        def pub_exists(:error) do
-          :error
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
-      opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
-        arity: 1
-      ]
-
-      Extractor.emplace(opts)
-
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def refactor1(arg1) do"
-      assert file =~ "def refactor1([]) do"
-      assert file =~ " @doc \"some docs\""
+      file = changes.file_contents
+      assert changes.module == "ExFactor.Support.ExampleEight"
+      assert changes.path == "test/support/example_eight.ex"
+      assert file =~ "def a_third_func(path) do"
+      assert file =~ "|> IO.inspect()"
     end
   end
 end
