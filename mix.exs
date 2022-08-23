@@ -6,7 +6,7 @@ defmodule ExFactor.MixProject do
 
   @name "ExFactor"
   @source_url "https://github.com/ckochx/ex_factor"
-  @version "0.3.3"
+  @version "0.4.0"
 
   def project do
     [
