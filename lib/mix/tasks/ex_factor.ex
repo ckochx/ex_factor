@@ -57,9 +57,9 @@ defmodule Mix.Tasks.ExFactor do
           key: :string,
           module: :string,
           moduleonly: :boolean,
-          source_path: :string,
+          sourcepath: :string,
           target: :string,
-          target_path: :string
+          targetpath: :string
         ]
       )
 
@@ -84,6 +84,18 @@ defmodule Mix.Tasks.ExFactor do
     |> Keyword.put(:source_module, Keyword.fetch!(opts, :module))
     |> Keyword.put(:target_module, Keyword.fetch!(opts, :target))
     |> Keyword.put(:dry_run, Keyword.get(opts, :dryrun, false))
+    |> then(fn opts ->
+      case Keyword.get(opts, :sourcepath) do
+        nil -> opts
+        path -> Keyword.put(opts, :source_path, path)
+      end
+    end)
+    |> then(fn opts ->
+      case Keyword.get(opts, :targetpath) do
+        nil -> opts
+        path -> Keyword.put(opts, :target_path, path)
+      end
+    end)
   end
 
   defp cli_output(map, opts) do

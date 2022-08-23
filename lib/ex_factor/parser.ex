@@ -4,6 +4,8 @@ defmodule ExFactor.Parser do
   context of a Mix app and that every file contains one or more `defmodule` blocks.
   """
 
+  @code_options [:line, token_metadata: true, columns: true]
+
   @doc """
   Parse the contents of a filepath in an Abstract Syntaxt Tree (AST) and
   extraxct the block contents of the module at the filepath.
@@ -11,14 +13,14 @@ defmodule ExFactor.Parser do
   def read_file(filepath) when is_binary(filepath) do
     contents = File.read!(filepath)
     list = String.split(contents, "\n")
-    {:ok, ast} = Code.string_to_quoted(contents, token_metadata: true)
+    {:ok, ast} = Code.string_to_quoted(contents, @code_options)
     {ast, list}
   end
 
   def block_contents(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted(@code_options)
     |> block_contents()
   end
 
@@ -34,7 +36,7 @@ defmodule ExFactor.Parser do
   def all_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted(@code_options)
     |> all_functions()
   end
 
@@ -51,7 +53,7 @@ defmodule ExFactor.Parser do
   def public_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted(@code_options)
     |> public_functions()
   end
 
@@ -67,7 +69,7 @@ defmodule ExFactor.Parser do
   def private_functions(filepath) when is_binary(filepath) do
     filepath
     |> File.read!()
-    |> Code.string_to_quoted(token_metadata: true)
+    |> Code.string_to_quoted(@code_options)
     |> private_functions()
   end
 

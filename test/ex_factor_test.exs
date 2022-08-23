@@ -20,197 +20,49 @@ defmodule ExFactorTest do
   end
 
   describe "refactor/1" do
-    test "it refactors the functions into a new module, specified in opts" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          :empty
-        end
-        def refactor1(arg1) do
-          arg1
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @doc "some docs"
-        def pub_exists(:error) do
-          :error
-        end
-        def pub_exists(arg_exists) do
-          arg_exists
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
+    @tag :skip
+    test "works with an imported fn" do
       opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
-        arity: 1
-      ]
-
-      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
-
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      assert file =~ "def refactor1(arg1) do"
-      assert file =~ "def refactor1([]) do"
-      assert file =~ " @doc \"some docs\""
-      assert file =~ "def pub_exists(arg_exists) do"
-
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      refute file =~ "def refactor1(arg1) do"
-      refute file =~ "def refactor1([]) do"
-    end
-
-    test "it skips formatting when specified in opts" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          :empty
-        end
-        def refactor1(arg1) do
-          arg1
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-           @doc "some docs"
-        def pub_exists(:error) do
-          :error
-        end
-        def pub_exists(arg_exists) do
-          arg_exists
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
-      opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
-        arity: 1,
-        format: false
-      ]
-
-      %{additions: _, changes: _, removals: _} = _results = ExFactor.refactor(opts)
-
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-
-      assert file =~ "\ndef refactor1(arg1) do"
-      assert file =~ "defmodule ExFactor.Tmp.TargetModule do\n     @doc \"some docs\""
-    end
-
-    test "it returns the results of the dry_run changes" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          :empty
-        end
-        def refactor1(arg1) do
-          arg1
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @someattr "This is somedoc TargetModule"
-        @doc "some docs"
-        def pub_exists(:error) do
-          :error
-        end
-        def pub_exists(arg_exists) do
-          _ = @someattr
-          arg_exists
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
-      opts = [
-        target_module: "ExFactor.Tmp.TargetModule",
-        source_module: "ExFactor.Tmp.SourceModule",
-        source_function: :refactor1,
+        source_module: "ExFactor.Support.ExampleSeven",
+        source_path: "test/support/example_seven.ex",
+        target_path: "test/support/example_six.ex",
+        target_module: "ExFactor.Modified.ExampleSix",
+        source_function: :all_funcs,
         arity: 1,
         dry_run: true
       ]
+      %{additions: additions, changes: changes, removals: _} = _results = ExFactor.refactor(opts)
+      additions   |> IO.inspect(label: "")
+      assert additions.file_contents =~ "import ExFactor.Parser"
+      changes |> IO.inspect(label: "")
+    end
 
-      %{additions: _, changes: _, removals: _} = ExFactor.refactor(opts)
+    test "it refactors the functions into a new module, specified in opts" do
+      opts = [
+        source_module: "ExFactor.Formatter",
+        target_path: "test/support/example_six.ex",
+        target_module: "ExFactor.Modified.ExampleSix",
+        source_function: :format,
+        arity: 2,
+        dry_run: true
+      ]
+      %{additions: additions, changes: changes, removals: removals} = ExFactor.refactor(opts)
 
-      # assert that the original files are unchanged
-      file = File.read!("lib/ex_factor/tmp/target_module.ex")
-      refute file =~ "def refactor1(arg1) do"
-      refute file =~ "def refactor1([]) do"
+      assert removals.module == "ExFactor.Formatter"
+      assert additions.module == "ExFactor.Modified.ExampleSix"
+      assert additions.path == "test/support/example_six.ex"
 
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      assert file =~ "def refactor1(arg1) do"
-      assert file =~ "def refactor1([]) do"
+      five = Enum.find(changes, &(&1.module ==  ExFactor.Support.ExampleFive))
+      assert five.file_contents =~ "defdelegate format(args, opts \\\\ []), to: ExampleSix"
     end
   end
 
   describe "refactor_module/1" do
     test "it refactors the refs to a module name only" do
-      File.rm("lib/ex_factor/tmp/source_module.ex")
-      File.rm("lib/ex_factor/tmp/target_module.ex")
-
-      content = """
-      defmodule ExFactor.Tmp.SourceModule do
-        @doc "this is some documentation for refactor1/1"
-        def refactor1([]) do
-          ExFactor.Tmp.TargetModule.pub_exists({})
-        end
-        def refactor1(arg1) do
-          ExFactor.Tmp.TargetModule.pub_exists(arg1)
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
-      content = """
-      defmodule ExFactor.Tmp.TargetModule do
-        @doc "some docs"
-        def pub_exists(:error) do
-          :error
-        end
-        def pub_exists(arg_exists) do
-          arg_exists
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/target_module.ex", content)
-
       opts = [
-        target_module: "ExFactor.Tmp.NewModule",
-        source_module: "ExFactor.Tmp.TargetModule"
+        target_module: "ExFactor.Tmp.My.Neughbors.Moved",
+        source_module: "ExFactor.Neighbors",
+        dry_run: true
       ]
 
       %{additions: additions, changes: [changes], removals: removals} =
@@ -220,15 +72,10 @@ defmodule ExFactorTest do
       assert removals == %ExFactor{}
 
       assert %ExFactor{
-               module: ExFactor.Tmp.SourceModule,
-               path: "lib/ex_factor/tmp/source_module.ex",
-               state: [:alias_added, :changed, :changed]
+               module: ExFactor.Extractor,
+               path: "lib/ex_factor/extractor.ex",
+               state: [:dry_run, :alias_added, :changed, :changed]
              } = changes
-
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      assert file =~ "alias ExFactor.Tmp.NewModule"
-      assert file =~ "NewModule.pub_exists({})"
-      assert file =~ "NewModule.pub_exists(arg1)"
     end
   end
 end

@@ -3,10 +3,10 @@ defmodule ExFactor.MixTaskTest do
   import ExUnit.CaptureIO
 
   setup do
-    File.mkdir_p("test/tmp")
+    File.mkdir_p("lib/ex_factor/tmp")
 
     on_exit(fn ->
-      File.rm_rf("test/tmp")
+      File.rm_rf("lib/ex_factor/tmp")
     end)
   end
 
@@ -26,114 +26,23 @@ defmodule ExFactor.MixTaskTest do
     end
 
     test "write a new file with the function" do
-      content = """
-      defmodule ExFactorSampleModule do
-        @somedoc "This is somedoc"
-        # a comment and no aliases
-        _docp = "here's an arbitrary module underscore"
-        @spec pub1(term()) :: term()
-        def pub1(arg1) do
-          :pub1_ok
-        end
-      end
-      """
-
-      File.write("test/tmp/source_module.ex", content)
-      target_path = "test/tmp/target_module.ex"
-
       opts = [
-        target_path: target_path,
-        target: "ExFactor.NewMod",
-        module: "ExFactorSampleModule",
-        source_path: "test/tmp/source_module.ex",
-        function: :pub1,
-        arity: 1
+        target: "ExFactor.Tmp.NeighborsMoveOut",
+        module: "ExFactor.Neighbors",
+        function: :walk,
+        arity: 3,
+        dryrun: true,
+        verbosde: true
       ]
 
       argv = OptionParser.to_argv(opts)
 
-      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
-
-      file = File.read!(target_path)
-
-      assert file =~ "def pub1(arg1) do"
-      assert file =~ "defmodule ExFactor.NewMod do"
-      # includes additional attrs
-      assert file =~ "@spec pub1(term()) :: term()"
-      assert file =~ "@somedoc \"This is somedoc\""
-      # assert the added elements get flattened correctly
-      refute file =~ "[@somedoc \"This is somedoc\", "
-      # comments don't get moved
-      refute file =~ "# a comment and no aliases"
+      run_message = capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
+      assert run_message =~ "Module: ExFactor.Tmp.NeighborsMoveOut"
+      assert run_message =~ "Path: lib/ex_factor/tmp/neighbors_move_out.ex"
     end
 
-    test "write a new file add a moduledoc comment" do
-      content = """
-      defmodule ExFactorSampleModule do
-
-        def pub1(arg1) do
-          :pub1_ok
-        end
-      end
-      """
-
-      File.write("test/tmp/source_module.ex", content)
-      target_path = "test/tmp/target_module.ex"
-
-      opts = [
-        target_path: target_path,
-        target: "ExFactor.NewMod",
-        module: "ExFactorSampleModule",
-        source_path: "test/tmp/source_module.ex",
-        function: :pub1,
-        arity: 1
-      ]
-
-      argv = OptionParser.to_argv(opts)
-      capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
-
-      file = File.read!(target_path)
-      assert file =~ "def pub1(arg1)"
-      assert file =~ "@moduledoc \"This module created with ExFactor\""
-    end
-
-    test " with dry_run option, don't write the file." do
-      content = """
-      defmodule ExFactorSampleModule do
-        @somedoc "This is somedoc"
-        # a comment and no aliases
-        _docp = "here's an arbitrary module underscore"
-        @spec pub1(term()) :: term()
-        def pub1(arg1) do
-          :ok
-        end
-      end
-      """
-
-      File.write("test/tmp/source_module.ex", content)
-      target_path = "test/tmp/target_module.ex"
-
-      opts = [
-        target_path: target_path,
-        target: "ExFactor.NewMod",
-        module: "ExFactorSampleModule",
-        source_path: "test/tmp/source_module.ex",
-        function: :pub1,
-        arity: 1,
-        dryrun: true
-      ]
-
-      argv = OptionParser.to_argv(opts)
-
-      output = capture_io(fn -> Mix.Tasks.ExFactor.run(argv) end)
-
-      # no new file gets written
-      assert {:error, :enoent} = File.read(target_path)
-      # assert output.file_contents
-      assert output =~ "--dry_run changes to make"
-      assert output =~ "ExFactor.NewMod"
-    end
-
+    @tag :skip
     test "write multiple functions and their docs, into an existing module" do
       content = """
       defmodule ExFactor.Tmp.SourceModule do
@@ -195,32 +104,20 @@ defmodule ExFactor.MixTaskTest do
     end
 
     test "with --moduleonly" do
-      content = """
-      defmodule ExFactor.Module do
-        def pub1(arg1) do
-          ExFactorSampleModule.call_some_function(arg1)
-        end
-      end
-      """
-
-      File.write("lib/ex_factor/tmp/source_module.ex", content)
-
       opts = [
-        target: "ExFactor.NewMod",
-        module: "ExFactorSampleModule",
-        moduleonly: true
+        target: "ExFactor.Tmp.My.Neighbors.Moved",
+        module: "ExFactor.Neighbors",
+        moduleonly: true,
+        dryrun: true
       ]
 
       argv = OptionParser.to_argv(opts)
 
-      capture_io(fn ->
+      run_io = capture_io(fn ->
         Mix.Tasks.ExFactor.run(argv)
       end)
-
-      file = File.read!("lib/ex_factor/tmp/source_module.ex")
-      assert file =~ "def pub1(arg1) do\n    NewMod.call_some_function(arg1)\n  end"
-      assert file =~ "alias ExFactor.NewMod"
+      assert run_io =~ " Module: Elixir.ExFactor.Extractor"
+      assert run_io =~ "Path: lib/ex_factor/extractor.ex"
     end
-
   end
 end

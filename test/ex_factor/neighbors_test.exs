@@ -8,6 +8,8 @@ defmodule ExFactor.NeighborsTest do
       module =
         """
         defmodule ExFactorSampleModule do
+          use Some.Other.Library
+          import Some.Third.Lib
           @somedoc "This is somedoc"
           # comments get dropped
           @doc "
@@ -99,11 +101,63 @@ defmodule ExFactor.NeighborsTest do
              ] = Neighbors.walk(block, "pub2")
     end
 
-    test "it should handle ignore the aliases" do
+    test "it should ignore the aliases" do
       module =
         """
         defmodule ExFactorSampleModule do
           alias ExFactor.OtherModule
+          def pub1(arg1) do
+            :ok
+          end
+          _docp = "arbitrary module-level elem"
+          defp priv1(arg1) do
+            :ok
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+
+      {_ast, block} = Parser.block_contents(module)
+
+      assert [
+               {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
+             ] = Neighbors.walk(block, :pub1)
+    end
+
+    test "it should ignore the use, import, and require" do
+      module =
+        """
+        defmodule ExFactorSampleModule do
+          alias ExFactor.OtherModule
+          use OtherModule
+          import OtherModule
+          require OtherModule
+          def pub1(arg1) do
+            :ok
+          end
+          _docp = "arbitrary module-level elem"
+          defp priv1(arg1) do
+            :ok
+          end
+        end
+        """
+        |> Code.string_to_quoted()
+
+      {_ast, block} = Parser.block_contents(module)
+
+      assert [
+               {:def, _, [{:pub1, _, [{:arg1, _, nil}]}, _]}
+             ] = Neighbors.walk(block, :pub1)
+    end
+
+    # This test isn't working yet.
+    @tag :skip
+    test "it should ignore types" do
+      module =
+        """
+        defmodule ExFactorSampleModule do
+          @type word :: String.t()
+          @module_attr ~w(one, two, three)a
           def pub1(arg1) do
             :ok
           end

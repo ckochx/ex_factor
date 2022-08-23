@@ -1,11 +1,12 @@
+# Compile Exfactor.Tracer so the compilation tracer is available when it's needed
+Code.compile_file("support/tracer.ex")
+
 defmodule ExFactor.MixProject do
   use Mix.Project
 
   @name "ExFactor"
   @source_url "https://github.com/ckochx/ex_factor"
-  @version "VERSION"
-           |> File.read!()
-           |> String.trim()
+  @version "0.4.0"
 
   def project do
     [
@@ -14,7 +15,7 @@ defmodule ExFactor.MixProject do
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
-      start_permanent: Mix.env() == :prod,
+      config_path: "./config/config.exs",
       deps: deps(),
       description: description(),
       docs: docs(),
@@ -39,8 +40,7 @@ defmodule ExFactor.MixProject do
 
   defp deps do
     [
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:changex, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false, optional: true, app: false}
     ]
   end
 

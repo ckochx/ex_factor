@@ -5,36 +5,17 @@ defmodule ExFactor.Changer do
   """
 
   alias ExFactor.Callers
-
-  @doc """
-  Given all the Callers of a module, find the instances of usage of the module and refactor the
-  module reference to the new module. Respect any existing aliases.
-  """
-  def rename_module(opts) do
-    Mix.Tasks.Compile.Elixir.run([])
-    :timer.sleep(100)
-    source_module = Keyword.fetch!(opts, :source_module)
-
-    source_module
-    |> Callers.callers()
-    |> Enum.group_by(& &1.file)
-    |> update_caller_module(opts)
-  end
+  alias ExFactor.Parser
 
   @doc """
   Given all the Callers to a module, find the instances of the target function and refactor the
   function module reference to the new module. Respect any existing aliases.
   """
   def change(opts) do
-    Mix.Tasks.Compile.Elixir.run([])
-    :timer.sleep(100)
     source_module = Keyword.fetch!(opts, :source_module)
-    source_function = Keyword.fetch!(opts, :source_function)
-    arity = Keyword.fetch!(opts, :arity)
 
     source_module
-    |> Callers.callers(source_function, arity)
-    |> Enum.group_by(& &1.file)
+    |> Callers.callers()
     |> update_caller_groups(opts)
   end
 
@@ -52,46 +33,56 @@ defmodule ExFactor.Changer do
     ]
   end
 
-  defp update_caller_module(callers, opts) do
-    dry_run = Keyword.get(opts, :dry_run, false)
-
-    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
-      file_list =
-        File.read!(file)
-        |> String.split("\n")
-
-      grouped_callers
-      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
-        find_and_replace_module(acc, opts, line)
-      end)
-      |> maybe_add_import(opts)
-      |> maybe_add_alias(opts)
-      |> write_file(first.caller_module, file, dry_run)
-    end)
-  end
-
   defp update_caller_groups(callers, opts) do
     dry_run = Keyword.get(opts, :dry_run, false)
+    source_module = Keyword.fetch!(opts, :source_module)
+    source_function = Keyword.get(opts, :source_function)
+    mod = Callers.cast(source_module)
 
-    Enum.map(callers, fn {file, [first | _] = grouped_callers} ->
+    case source_function do
+      nil -> callers
+        Enum.filter(callers, fn {{file_path, module}, fn_calls} ->
+          Enum.find(fn_calls, fn
+          {_, _, _, ^mod, _, _} -> true
+          _ -> false
+          end)
+        end)
+      fun ->
+        fun_atom = Callers.cast(fun)
+        Enum.filter(callers, fn {{file_path, module}, fn_calls} ->
+          Enum.find(fn_calls, fn
+          {_, _, _, ^mod, ^fun_atom, _} -> true
+          _ -> false
+          end)
+        end)
+    end
+    |> Enum.map(fn {{file_path, module}, fn_calls} ->
       file_list =
-        File.read!(file)
+        file_path
+        |> File.read!()
         |> String.split("\n")
-
-      grouped_callers
-      |> Enum.reduce({[:unchanged], file_list}, fn %{line: line}, acc ->
-        find_and_replace_function(acc, opts, line)
+      Enum.reduce(fn_calls, {[:unchanged], file_list}, fn
+        {_, line, _, ^mod, _, _} = fn_call, acc ->
+          find_and_replace(acc, opts, line)
+        _, acc -> acc
       end)
-      |> maybe_add_import(opts)
       |> maybe_add_alias(opts)
-      |> write_file(first.caller_module, file, dry_run)
+      |> maybe_add_import(opts)
+      |> write_file(module, file_path, dry_run)
     end)
   end
 
-  defp find_and_replace_function({state, file_list}, opts, line) do
+  defp find_and_replace({state, file_list} = tuple, opts, line) do
+    # opts values
+    case Keyword.get(opts, :source_function) do
+      nil -> update_module(tuple, opts, line)
+      _source_function -> update_module_and_function(tuple, opts, line)
+    end
+  end
+
+  defp update_module_and_function({state, file_list}, opts, line) do
     # opts values
     source_module = Keyword.fetch!(opts, :source_module)
-    source_function = Keyword.fetch!(opts, :source_function)
     target_module = Keyword.fetch!(opts, :target_module)
 
     # modified values
@@ -100,6 +91,7 @@ defmodule ExFactor.Changer do
     source_alias = Enum.at(source_modules, -1)
     target_alias = preferred_alias(file_list, target_module)
     source_alias_alt = find_alias_as(file_list, source_module)
+    {:ok, source_function} = Keyword.fetch(opts, :source_function)
     fn_line = Enum.at(file_list, line - 1)
 
     {new_state, new_line} =
@@ -119,6 +111,18 @@ defmodule ExFactor.Changer do
           fn_line = String.replace(fn_line, source_alias_alt, target_alias)
           {set_state(state, :changed), fn_line}
 
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_string}/) ->
+          fn_line = String.replace(fn_line, source_string, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_alias}/) ->
+          fn_line = String.replace(fn_line, source_alias, target_alias)
+          {set_state(state, :changed), fn_line}
+
+        String.match?(fn_line, ~r/defdelegate\s*#{source_function}.*#{source_alias_alt}/) ->
+          fn_line = String.replace(fn_line, source_alias_alt, target_alias)
+          {set_state(state, :changed), fn_line}
+
         true ->
           {state, fn_line}
       end
@@ -126,7 +130,7 @@ defmodule ExFactor.Changer do
     {new_state, List.replace_at(file_list, line - 1, new_line)}
   end
 
-  defp find_and_replace_module({state, file_list}, opts, line) do
+  defp update_module({state, file_list}, opts, line) do
     # opts values
     source_module = Keyword.fetch!(opts, :source_module)
     target_module = Keyword.fetch!(opts, :target_module)
@@ -141,6 +145,10 @@ defmodule ExFactor.Changer do
 
     {new_state, new_line} =
       cond do
+        # already changed
+        String.match?(fn_line, ~r/#{target_alias}/) ->
+          {state, fn_line}
+
         # match full module name
         String.match?(fn_line, ~r/#{source_string}/) ->
           fn_line = String.replace(fn_line, source_module, target_alias)
@@ -151,11 +159,6 @@ defmodule ExFactor.Changer do
           fn_line = String.replace(fn_line, source_alias, target_alias)
           {set_state(state, :changed), fn_line}
 
-        # match module name aliased :as
-        String.match?(fn_line, ~r/#{source_alias_alt}/) ->
-          fn_line = String.replace(fn_line, source_alias_alt, target_alias)
-          {set_state(state, :changed), fn_line}
-
         true ->
           {state, fn_line}
       end
@@ -164,10 +167,10 @@ defmodule ExFactor.Changer do
   end
 
   defp find_alias_as(list, module) do
-    aalias = Enum.find(list, "", fn el -> str_match?(el, module) end)
+    alias_as = Enum.find(list, "", fn el -> str_match?(el, module) end)
 
-    if String.match?(aalias, ~r/, as: /) do
-      aalias
+    if String.match?(alias_as, ~r/, as: /) do
+      alias_as
       |> String.split("as:", trim: true)
       |> Enum.at(-1)
     else
@@ -213,6 +216,7 @@ defmodule ExFactor.Changer do
   defp list_to_string(contents_list) do
     Enum.join(contents_list, "\n")
   end
+  defp maybe_add_alias({[:unchanged], _} = resp, _), do: resp
 
   defp maybe_add_alias({state, contents_list}, opts) do
     target_module = Keyword.fetch!(opts, :target_module)
@@ -254,10 +258,10 @@ defmodule ExFactor.Changer do
         {state, contents_list}
 
       :changed in state ->
-        index =
+        alias_index =
           Enum.find_index(contents_list, fn el -> str_match?(el, target_string, "alias") end)
 
-        index = index || 2
+        index = alias_index || 2
         contents_list = List.insert_at(contents_list, index - 1, "alias #{target_string}")
         {set_state(state, :alias_added), contents_list}
 
@@ -266,10 +270,11 @@ defmodule ExFactor.Changer do
     end
   end
 
+  defp maybe_add_import({[:unchanged], _} = resp, _), do: resp
   defp maybe_add_import({state, contents_list}, opts) do
     source_module = Keyword.fetch!(opts, :source_module)
     target_module = Keyword.fetch!(opts, :target_module)
-    target_string = to_string(target_module)
+    target_alias = preferred_alias([], target_module)
     source_modules = String.split(source_module, ".")
     source_alias = Enum.at(source_modules, -1)
     source_alias_alt = find_alias_as(contents_list, source_module)
@@ -279,10 +284,8 @@ defmodule ExFactor.Changer do
       Enum.find_index(contents_list, fn el -> str_match?(el, source_alias, "import") end) ||
         Enum.find_index(contents_list, fn el -> str_match?(el, source_alias_alt, "import") end)
 
-    new_state = set_state(state, :import_added)
-
     if index do
-      {new_state, List.insert_at(contents_list, index + 1, "import #{target_string}")}
+      {set_state(state, :import_added), List.insert_at(contents_list, index + 1, "import #{target_alias}")}
     else
       {state, contents_list}
     end
