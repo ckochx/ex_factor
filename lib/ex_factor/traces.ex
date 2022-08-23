@@ -1,6 +1,7 @@
 defmodule ExFactor.Traces do
   def setup do
-    Code.compiler_options(debug_info: true, parser_options: [columns: true, token_metadata: true])
+    Code.compiler_options(warnings_as_errors: false, debug_info: true, parser_options: [columns: true, token_metadata: true])
+
     ExFactor.Server = Code.ensure_loaded!(ExFactor.Server)
     ExFactor.Tracer = Code.ensure_loaded!(ExFactor.Tracer)
 

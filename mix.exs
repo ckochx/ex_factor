@@ -1,3 +1,4 @@
+# Compile Exfactor.Tracer so the compilation tracer is available when it's needed
 Code.compile_file("support/tracer.ex")
 
 defmodule ExFactor.MixProject do

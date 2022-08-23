@@ -1,6 +1,7 @@
 defmodule Mix.Tasks.ExFactorRunner do
   @moduledoc """
-  In order to run ExFactor on ExFactor, we need to make some files available "outside of" ExFactor, or more precisely along side of ExFactor.
+  In order to run ExFactor on ExFactor, we need to make some files available "outside of"
+  ExFactor, or more precisely along side of ExFactor.
 
   We need to have a process running during compilation that can run the `ExFactor.Server` Agent.
   Additionally we need the setup from `ExFactor.Traces`, we could replicate this here, but why
@@ -13,8 +14,6 @@ defmodule Mix.Tasks.ExFactorRunner do
     unless Version.match?(System.version(), ">= 1.13.0") do
       Mix.raise("Elixir v1.13+ is required!")
     end
-
-    Code.compiler_options(debug_info: true, parser_options: [columns: true, token_metadata: true])
 
     Code.compile_file("./lib/ex_factor/server.ex", File.cwd!())
     :timer.sleep(20)
