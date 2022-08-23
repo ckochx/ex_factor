@@ -55,6 +55,12 @@ Use at your peril, _for now._
 
   `auto-changelog --breaking-pattern "BREAKING CHANGE"`
 
+### Tagging by version in mix.exs
+
+  ```
+    git tag `egrep '@version \"\d\.\d\.\d\".*' mix.exs | awk '{gsub(/"/, "", $2); print $2}'`
+  ```
+
 ## Installation
 
 [Hex](https://hex.pm/docs/publish), the package can be installed
