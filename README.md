@@ -32,6 +32,7 @@ Use at your peril, _for now._
 
 ## Roadmap TODO
 
+  - [] require as:
   - [] find private functions references in refactored fn bodies.
   - [] Add test for one file containing more than one `defmodule`
   - [] Add test for nested defmodules.

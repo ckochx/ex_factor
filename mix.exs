@@ -1,12 +1,12 @@
 # Compile Exfactor.Tracer so the compilation tracer is available when it's needed
-Code.compile_file("support/tracer.ex")
+Code.compile_file("lib/ex_factor/tracer.ex")
 
 defmodule ExFactor.MixProject do
   use Mix.Project
 
   @name "ExFactor"
   @source_url "https://github.com/ckochx/ex_factor"
-  @version "0.4.0"
+  @version "0.4.1.pre"
 
   def project do
     [
